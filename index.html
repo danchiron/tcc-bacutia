@@ -268,15 +268,7 @@ Pergunte qualquer coisa sobre as rochas da Bacutia, meu pedregulho!</div>
             <div class="max-w-5xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-gray-200">
                 <h2 class="text-3xl font-bold text-[#5D4037] text-center mb-2">Infográfico</h2>
                 <p class="text-center text-gray-700 mb-6">Anatexia em destaque</p>
-                <img
-                    src="assets/infografico-bacutia.png"
-                    alt="Infográfico sobre anatexia"
-                    class="w-full h-auto rounded-xl border border-gray-300 shadow-sm"
-                    loading="lazy"
-                >
-                <p class="text-xs text-gray-500 mt-3 text-center">
-                    Imagem em alta resolução carregada localmente pelo arquivo <code>assets/infografico-bacutia.png</code> do projeto.
-                </p>
+                <div id="infografico-gallery" class="space-y-6"></div>
                 <div class="mt-6 grid gap-3 md:grid-cols-3 text-sm">
                     <p class="bg-[#EFEBE9] border border-[#D7CCC8] rounded-lg p-3 text-gray-800">
                         <strong>1. Protólito:</strong> No início, era só areia + argila (lama) no fundo do mar, ainda sem virar rocha dura.
@@ -337,11 +329,60 @@ Exemplo de fala: "No meu tempo, aqui era tudo lava! 🔥 Eu nasci num aperto dan
 ${TCC_CONTEXT}`
         };
 
+        const INFOGRAFICO_IMAGES = [
+            {
+                src: 'assets/infografico-bacutia.png',
+                alt: 'Infográfico sobre anatexia na Bacutia',
+                title: 'Infográfico principal',
+                description: 'Imagem em alta resolução carregada localmente pelo arquivo assets/infografico-bacutia.png do projeto.'
+            }
+        ];
+
+        function renderInfografico() {
+            const galleryEl = document.getElementById('infografico-gallery');
+            if (!galleryEl) return;
+
+            galleryEl.innerHTML = '';
+
+            INFOGRAFICO_IMAGES.forEach((image) => {
+                const card = document.createElement('article');
+                card.className = 'bg-[#FAF7F5] border border-[#D7CCC8] rounded-xl p-4';
+
+                const title = document.createElement('h3');
+                title.className = 'text-xl font-bold text-[#5D4037] mb-3';
+                title.textContent = image.title;
+
+                const img = document.createElement('img');
+                img.src = image.src;
+                img.alt = image.alt;
+                img.loading = 'lazy';
+                img.className = 'w-full h-auto rounded-xl border border-gray-300 shadow-sm';
+
+                const fallback = document.createElement('p');
+                fallback.className = 'hidden mt-3 bg-[#FBE9E7] border border-[#FFCCBC] rounded-lg p-3 text-sm text-[#5D4037]';
+                fallback.textContent = `Não foi possível carregar a imagem "${image.title}". Verifique o arquivo em ${image.src}.`;
+
+                img.addEventListener('error', () => {
+                    img.classList.add('hidden');
+                    fallback.classList.remove('hidden');
+                });
+
+                const description = document.createElement('p');
+                description.className = 'text-xs text-gray-500 mt-3 text-center';
+                description.textContent = image.description;
+
+                card.append(title, img, fallback, description);
+                galleryEl.appendChild(card);
+            });
+        }
+
         function buildKidsInstruction(text) {
             return `${text}
 
 Responda de forma curtinha, no máximo 3 frases.`;
         }
+
+        renderInfografico();
 
         async function askGemini(mode) {
             const inputEl = document.getElementById(`${mode}-chat-input`);
