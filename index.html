@@ -402,7 +402,7 @@ Responda de forma curtinha, no máximo 3 frases.`;
                     .map(model => `${GEMINI_API_BASE_URL}/models/${model}:generateContent?key=${apiKey}`);
 
                 let response;
-                let lastError = null;
+                let requestError = null;
                 for (const endpoint of endpoints) {
                     response = await fetch(endpoint, {
                         method: 'POST',
@@ -432,22 +432,28 @@ Responda de forma curtinha, no máximo 3 frases.`;
                     throw new Error('Resposta vazia da API Gemini.');
                 }
 
-                loading.remove();
+                if (loading.parentNode) {
+                    loading.remove();
+                }
                 const aiMsg = document.createElement('div');
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
                 aiMsg.innerText = answer;
                 outputEl.appendChild(aiMsg);
                 outputEl.scrollTop = outputEl.scrollHeight;
             } catch (error) {
-                loading.remove();
+                if (loading.parentNode) {
+                    loading.remove();
+                }
                 const aiMsg = document.createElement('div');
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
                 aiMsg.innerText = `Não consegui responder agora (${error.message}). Tente novamente em instantes.`;
                 outputEl.appendChild(aiMsg);
-            } finally {
-                loading.remove();
-                outputEl.scrollTop = outputEl.scrollHeight;
                 console.error(error);
+            } finally {
+                if (loading.parentNode) {
+                    loading.remove();
+                }
+                outputEl.scrollTop = outputEl.scrollHeight;
             }
         }
 
