@@ -1,0 +1,12 @@
+{
+  "name": "tcc-bacutia",
+  "version": "1.0.0",
+  "description": "TCC de Pablo Salvato com backend seguro para integração Gemini",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
