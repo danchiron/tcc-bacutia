@@ -291,6 +291,24 @@ Pergunte qualquer coisa sobre as rochas da Bacutia, meu pedregulho!</div>
 
     <script>
 
+        // Configuração de imagens de fundo (troca rápida por tipo de tela)
+        // - Desktop principal: use `main.desktop`
+        // - Mobile principal: use `main.mobile`
+        // - Alternativa “flat” desktop: use `flat.desktop`
+        // - Alternativa “flat” mobile: use `flat.mobile`
+        // - Textura tile opcional (overlay/repeat): use `optionalTileOverlay`
+        const BACKGROUND_IMAGE_CONFIG = {
+            main: {
+                desktop: 'assets/geology-strata-background-horizontal-painted-3168x1344.jpg',
+                mobile: 'assets/geology-strata-background-vertical-painted-1856x2304.jpg'
+            },
+            flat: {
+                desktop: 'assets/geology-strata-background-horizontal-flat-3168x1344.jpg',
+                mobile: 'assets/geology-strata-background-vertical-flat-1856x2304.jpg'
+            },
+            optionalTileOverlay: 'assets/granite-texture-tile-seamless-2816x1536.jpg'
+        };
+
         function switchTab(tabId) {
             ['general', 'academic', 'kids', 'infografico'].forEach(id => {
                 document.getElementById(`view-${id}`).classList.add('hidden');
