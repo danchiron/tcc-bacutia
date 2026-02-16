@@ -382,6 +382,45 @@ ${TCC_CONTEXT}`
 Responda de forma curtinha, no máximo 3 frases.`;
         }
 
+        function buildChatEndpoints() {
+            const customBase = window.CHAT_API_BASE_URL ? String(window.CHAT_API_BASE_URL).trim().replace(/\/$/, '') : '';
+            const candidates = customBase
+                ? [`${customBase}/api/chat`, `${customBase}/chat`, '/api/chat', '/chat']
+                : ['/api/chat', '/chat'];
+
+            return [...new Set(candidates)];
+        }
+
+        async function postChatWithFallback(payload) {
+            const endpoints = buildChatEndpoints();
+            let lastError = null;
+
+            for (const endpoint of endpoints) {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json().catch(() => null);
+
+                if (response.ok) {
+                    return { response, data, endpoint };
+                }
+
+                const backendError = data?.error || `Servidor retornou status ${response.status}.`;
+                lastError = new Error(backendError);
+
+                if (response.status === 404 || response.status === 405) {
+                    continue;
+                }
+
+                throw lastError;
+            }
+
+            throw lastError || new Error('Não foi possível acessar o endpoint de chat.');
+        }
+
         renderInfografico();
 
         async function askGemini(mode) {
@@ -411,28 +450,7 @@ Responda de forma curtinha, no máximo 3 frases.`;
                     text: userText
                 };
 
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    let requestError = new Error(`Servidor retornou status ${response.status}.`);
-                    try {
-                        const errorData = await response.json();
-                        if (errorData?.error) {
-                            requestError = new Error(errorData.error);
-                        }
-                    } catch (_) {
-                        // Ignora falhas de parsing e mantém mensagem padrão.
-                    }
-                    throw requestError;
-                }
-
-                if (!response.ok || data?.error) {
-                    throw new Error(mapBackendError(data?.error || `status ${response.status}`));
-                }
+                const { data } = await postChatWithFallback(payload);
 
                 const answer = data?.answer?.trim();
 
