@@ -7,45 +7,45 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Merriweather:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0b1020;
-            --card: rgba(16, 25, 49, 0.75);
-            --card-soft: rgba(30, 42, 73, 0.55);
-            --line: rgba(126, 158, 255, 0.25);
-            --text: #e9ecff;
-            --muted: #b3bce6;
-            --primary: #7c8cff;
-            --accent: #ff7e9f;
-            --warm: #ffb067;
+            --bg: #f1e9d8;
+            --card: rgba(251, 246, 236, 0.9);
+            --card-soft: rgba(235, 224, 204, 0.75);
+            --line: rgba(109, 71, 46, 0.2);
+            --text: #2d1f18;
+            --muted: #6a5649;
+            --primary: #8a4f2b;
+            --accent: #a33e2f;
+            --warm: #bf7b3f;
         }
 
         * { box-sizing: border-box; }
         html, body { margin: 0; }
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Source Sans 3', sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at 20% 10%, #27356e 0%, transparent 40%),
-                radial-gradient(circle at 80% 0%, #5b2c63 0%, transparent 35%),
-                radial-gradient(circle at 50% 100%, #2e4b72 0%, transparent 45%),
-                var(--bg);
+                radial-gradient(circle at 15% 0%, rgba(173, 106, 58, .35) 0%, transparent 38%),
+                radial-gradient(circle at 88% 10%, rgba(62, 100, 97, .28) 0%, transparent 32%),
+                radial-gradient(circle at 40% 100%, rgba(121, 76, 45, .26) 0%, transparent 38%),
+                linear-gradient(180deg, #f7f1e5 0%, #efe3ce 100%);
             scroll-behavior: smooth;
         }
 
-        h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
+        h1, h2, h3, h4 { font-family: 'Merriweather', serif; color: var(--text); }
 
         .glass {
             backdrop-filter: blur(12px);
             background: var(--card);
             border: 1px solid var(--line);
             border-radius: 1rem;
-            box-shadow: 0 20px 35px rgba(5, 8, 20, 0.35);
+            box-shadow: 0 12px 24px rgba(73, 42, 22, 0.14);
         }
 
         .hero-grid {
-            background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(106,79,59,.09) 1px, transparent 1px), linear-gradient(90deg, rgba(106,79,59,.09) 1px, transparent 1px);
             background-size: 28px 28px;
         }
 
@@ -55,32 +55,32 @@
         }
 
         .active-tab {
-            background: linear-gradient(90deg, rgba(124,140,255,0.3), rgba(255,126,159,0.25));
-            border-color: rgba(169,182,255,0.45);
-            color: #ffffff;
+            background: linear-gradient(90deg, rgba(143, 82, 44, .22), rgba(89, 122, 110, .22));
+            border-color: rgba(139, 87, 50, 0.4);
+            color: #2d1f18;
         }
 
         .inactive-tab {
-            background: rgba(10, 17, 35, 0.55);
-            border-color: rgba(145, 157, 194, 0.18);
-            color: var(--muted);
+            background: rgba(255, 245, 228, 0.68);
+            border-color: rgba(139, 87, 50, 0.2);
+            color: #684d3f;
         }
 
         .inactive-tab:hover {
             color: #fff;
-            border-color: rgba(169,182,255,0.45);
+            border-color: rgba(139, 87, 50, 0.4);
         }
 
         .metric-pill {
-            background: linear-gradient(120deg, rgba(124,140,255,.18), rgba(255,176,103,.18));
-            border: 1px solid rgba(177, 193, 255, .3);
+            background: linear-gradient(120deg, rgba(163, 97, 56, .12), rgba(88, 120, 108, .12));
+            border: 1px solid rgba(152, 102, 61, .24);
         }
 
         .chart-container { position: relative; height: 300px; }
 
         .chat-message { padding: .75rem; border-radius: .85rem; margin-bottom: .5rem; max-width: 85%; animation: fadeIn .3s ease; }
-        .user-msg { background: rgba(124,140,255,.28); margin-left: auto; }
-        .ai-msg { background: rgba(255,126,159,.2); border-left: 3px solid var(--accent); }
+        .user-msg { background: rgba(173, 122, 88, .24); margin-left: auto; }
+        .ai-msg { background: rgba(77, 122, 114, .16); border-left: 3px solid #5f7f78; }
 
         .typing-indicator::after { content: '...'; animation: ellipsis 1.5s infinite; }
 
@@ -92,8 +92,8 @@
             overflow: hidden;
             margin: 0 auto;
             border-radius: 1rem;
-            border: 1px solid rgba(145, 157, 194, .3);
-            box-shadow: 0 18px 35px rgba(0,0,0,.3);
+            border: 1px solid rgba(118, 78, 49, .28);
+            box-shadow: 0 12px 25px rgba(95, 64, 42, .25);
         }
 
         .img-fundo,
@@ -106,13 +106,13 @@
         }
 
         .img-fundo {
-            background-image: linear-gradient(45deg, rgba(9, 15, 31, .5), rgba(9, 15, 31, .2)), url('https://placehold.co/1200x700/4b5d88/f8d9ba?text=Afloramento+PS02+-+Bacutia');
+            background-image: linear-gradient(45deg, rgba(58, 35, 24, .42), rgba(116, 84, 52, .28)), url('https://placehold.co/1200x700/9d6f47/f6e7d0?text=Afloramento+PS02+-+Bacutia');
         }
 
         .img-frente {
             width: 50%;
             border-right: 3px solid #fff;
-            background-image: linear-gradient(45deg, rgba(132, 37, 60, .3), rgba(54, 10, 41, .2)), url('https://placehold.co/1200x700/84253c/f9f2f4?text=Fotomicrografia+Grt1+e+Grt2');
+            background-image: linear-gradient(45deg, rgba(118, 43, 35, .33), rgba(68, 84, 72, .24)), url('https://placehold.co/1200x700/8f4f45/f6e8d8?text=Fotomicrografia+Grt1+e+Grt2');
             z-index: 2;
         }
 
@@ -123,26 +123,27 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
-    <header class="hero-grid border-b border-indigo-200/20">
+    <header class="hero-grid border-b border-amber-900/20">
         <div class="max-w-6xl mx-auto px-4 py-14">
             <div class="glass p-8 md:p-10">
-                <p class="uppercase tracking-[.25em] text-xs text-indigo-200 mb-3">Projeto Interativo do TCC</p>
-                <h1 class="text-3xl md:text-5xl font-bold leading-tight">A evolução metamórfica da <span class="text-rose-300">Praia da Bacutia</span></h1>
-                <p class="text-indigo-100/90 mt-4 text-base md:text-lg max-w-3xl">Uma versão mais moderna do estudo de <strong>Pablo Salvato</strong> sobre anatexia, trajetória P-T e geração de granadas peritéticas na Faixa Araçuaí.</p>
+                <p class="uppercase tracking-[.25em] text-xs text-stone-600 mb-3">Dossiê Acadêmico Interativo</p>
+                <h1 class="text-3xl md:text-5xl font-bold leading-tight">A evolução metamórfica da <span class="text-amber-800">Praia da Bacutia</span></h1>
+                <p class="text-stone-700 mt-4 text-base md:text-lg max-w-3xl">Uma leitura acadêmica e visualmente refinada do estudo de <strong>Pablo Salvato</strong> sobre anatexia, trajetória P-T e geração de granadas peritéticas na Faixa Araçuaí.</p>
                 <div class="mt-8 grid sm:grid-cols-3 gap-3 text-sm">
-                    <div class="metric-pill rounded-xl p-3"><i class="fa-solid fa-temperature-full mr-2 text-orange-300"></i> Pico térmico: <strong>750–850°C</strong></div>
-                    <div class="metric-pill rounded-xl p-3"><i class="fa-solid fa-gem mr-2 text-rose-300"></i> Grt1 e Grt2 como registro-chave</div>
-                    <div class="metric-pill rounded-xl p-3"><i class="fa-solid fa-earth-americas mr-2 text-cyan-300"></i> Contexto Gondwana e colisão Brasil-África</div>
+                    <div class="metric-pill rounded-xl p-3"><i class="fa-solid fa-temperature-full mr-2 text-orange-700"></i> Pico térmico: <strong>750–850°C</strong></div>
+                    <div class="metric-pill rounded-xl p-3"><i class="fa-solid fa-gem mr-2 text-amber-800"></i> Grt1 e Grt2 como registro-chave</div>
+                    <div class="metric-pill rounded-xl p-3"><i class="fa-solid fa-earth-americas mr-2 text-teal-700"></i> Contexto Gondwana e colisão Brasil-África</div>
                 </div>
             </div>
         </div>
     </header>
 
-    <nav class="sticky top-0 z-50 backdrop-blur-lg bg-slate-900/70 border-b border-indigo-100/10">
+    <nav class="sticky top-0 z-50 backdrop-blur-lg bg-[#efe1ca]/90 border-b border-amber-900/15">
         <div class="max-w-6xl mx-auto px-4 py-3 flex justify-center gap-2 flex-wrap">
             <button onclick="switchTab('general')" id="tab-general" class="tab-btn active-tab px-5 py-2 rounded-full font-semibold"><i class="fa-solid fa-compass mr-2"></i>Visão geral</button>
             <button onclick="switchTab('academic')" id="tab-academic" class="tab-btn inactive-tab px-5 py-2 rounded-full font-semibold"><i class="fa-solid fa-microscope mr-2"></i>Análise técnica</button>
             <button onclick="switchTab('kids')" id="tab-kids" class="tab-btn inactive-tab px-5 py-2 rounded-full font-semibold"><i class="fa-solid fa-flask mr-2"></i>Laboratório</button>
+            <button onclick="switchTab('reference')" id="tab-reference" class="tab-btn inactive-tab px-5 py-2 rounded-full font-semibold"><i class="fa-solid fa-image mr-2"></i>Imagem-base</button>
         </div>
     </nav>
 
@@ -150,20 +151,20 @@
         <section id="view-general" class="space-y-8">
             <div class="glass p-8 text-center">
                 <h2 class="text-2xl md:text-4xl mb-4">Você está sobre a raiz de um antigo orógeno</h2>
-                <p class="text-indigo-100/90 max-w-4xl mx-auto">A Bacutia preserva sinais da colisão continental que ajudou a formar Gondwana. O TCC demonstra como o metamorfismo de alto grau levou à fusão parcial e ao crescimento de granadas em diferentes gerações.</p>
+                <p class="text-stone-700 max-w-4xl mx-auto">A Bacutia preserva sinais da colisão continental que ajudou a formar Gondwana. O TCC demonstra como o metamorfismo de alto grau levou à fusão parcial e ao crescimento de granadas em diferentes gerações.</p>
             </div>
 
             <div class="grid lg:grid-cols-2 gap-6">
                 <article class="glass p-6">
-                    <h3 class="text-2xl mb-4"><i class="fa-solid fa-map-location-dot text-cyan-300 mr-2"></i>Cenário tectônico</h3>
-                    <p class="text-indigo-100/90 mb-4">A região representa uma zona profunda da crosta durante a evolução da Faixa Araçuaí. O registro petrográfico indica soterramento, aquecimento e descompressão associados a eventos colisionais.</p>
-                    <div class="rounded-xl p-4 bg-slate-900/40 border border-indigo-100/10 text-sm text-indigo-100/80">
-                        <strong class="text-indigo-100">Insight do TCC:</strong> granadas Grt1 preservam inclusões e evidências pré-pico, enquanto Grt2 registra condições próximas à anatexia.
+                    <h3 class="text-2xl mb-4"><i class="fa-solid fa-map-location-dot text-teal-700 mr-2"></i>Cenário tectônico</h3>
+                    <p class="text-stone-700 mb-4">A região representa uma zona profunda da crosta durante a evolução da Faixa Araçuaí. O registro petrográfico indica soterramento, aquecimento e descompressão associados a eventos colisionais.</p>
+                    <div class="rounded-xl p-4 bg-[#f1e2c9]/65 border border-amber-900/15 text-sm text-stone-600">
+                        <strong class="text-stone-800">Insight do TCC:</strong> granadas Grt1 preservam inclusões e evidências pré-pico, enquanto Grt2 registra condições próximas à anatexia.
                     </div>
                 </article>
 
                 <article class="glass p-6">
-                    <h3 class="text-2xl mb-4"><i class="fa-solid fa-maximize text-rose-300 mr-2"></i>Lupa comparativa</h3>
+                    <h3 class="text-2xl mb-4"><i class="fa-solid fa-maximize text-amber-800 mr-2"></i>Lupa comparativa</h3>
                     <div class="slider-container">
                         <div class="img-fundo"></div>
                         <div id="imgFront" class="img-frente"></div>
@@ -177,51 +178,51 @@
             <div class="grid lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 space-y-6">
                     <div class="glass p-6">
-                        <h3 class="text-2xl mb-3"><i class="fa-solid fa-chart-line text-indigo-300 mr-2"></i>Dados-chave do trabalho</h3>
-                        <p class="text-indigo-100/90 mb-4">As visualizações resumem a progressão metamórfica com destaque para o aumento de granada no pico e posterior retrometamorfismo.</p>
+                        <h3 class="text-2xl mb-3"><i class="fa-solid fa-chart-line text-amber-800 mr-2"></i>Dados-chave do trabalho</h3>
+                        <p class="text-stone-700 mb-4">As visualizações resumem a progressão metamórfica com destaque para o aumento de granada no pico e posterior retrometamorfismo.</p>
                         <div class="grid md:grid-cols-2 gap-4">
-                            <div class="bg-slate-950/30 rounded-xl p-4 border border-indigo-100/10"><div class="chart-container"><canvas id="mineralChart"></canvas></div></div>
-                            <div class="bg-slate-950/30 rounded-xl p-4 border border-indigo-100/10"><div class="chart-container"><canvas id="ptPathChart"></canvas></div></div>
+                            <div class="bg-[#ead8bc]/55 rounded-xl p-4 border border-amber-900/15"><div class="chart-container"><canvas id="mineralChart"></canvas></div></div>
+                            <div class="bg-[#ead8bc]/55 rounded-xl p-4 border border-amber-900/15"><div class="chart-container"><canvas id="ptPathChart"></canvas></div></div>
                         </div>
                     </div>
                     <div class="glass p-6">
-                        <h4 class="text-xl mb-3"><i class="fa-solid fa-fire text-orange-300 mr-2"></i>Interpretação metamórfica</h4>
-                        <ul class="list-disc pl-5 text-indigo-100/90 space-y-2">
+                        <h4 class="text-xl mb-3"><i class="fa-solid fa-fire text-orange-700 mr-2"></i>Interpretação metamórfica</h4>
+                        <ul class="list-disc pl-5 text-stone-700 space-y-2">
                             <li>Protólito sedimentar submetido a soterramento progressivo.</li>
                             <li>Pico térmico com início de fusão parcial por quebra de biotita em presença de quartzo/plagioclásio.</li>
                             <li>Geração de líquidos anatéticos e cristalização de granada peritética (Grt2).</li>
                         </ul>
-                        <div class="mt-5 rounded-xl p-4 bg-slate-900/40 border border-indigo-100/10">
-                            <p class="text-sm text-indigo-100/80">Reação principal observada</p>
-                            <p class="text-lg md:text-xl mt-1 font-semibold text-amber-200">Bt + Pl + Qz &plusmn; Sil &rarr; Grt + Kfs + Melt</p>
-                            <p class="text-sm mt-2 text-indigo-100/80">Estruturas migmatíticas descritas: estromática (PS01), schollen (PS02), schlieren e ptigmática.</p>
+                        <div class="mt-5 rounded-xl p-4 bg-[#f1e2c9]/65 border border-amber-900/15">
+                            <p class="text-sm text-stone-600">Reação principal observada</p>
+                            <p class="text-lg md:text-xl mt-1 font-semibold text-orange-800">Bt + Pl + Qz &plusmn; Sil &rarr; Grt + Kfs + Melt</p>
+                            <p class="text-sm mt-2 text-stone-600">Estruturas migmatíticas descritas: estromática (PS01), schollen (PS02), schlieren e ptigmática.</p>
                         </div>
                     </div>
                     <div class="glass p-6 overflow-x-auto">
-                        <h4 class="text-xl mb-3"><i class="fa-solid fa-table text-rose-300 mr-2"></i>Comparativo petrográfico: Grt1 vs Grt2</h4>
+                        <h4 class="text-xl mb-3"><i class="fa-solid fa-table text-amber-800 mr-2"></i>Comparativo petrográfico: Grt1 vs Grt2</h4>
                         <table class="w-full text-sm border-collapse">
                             <thead>
-                                <tr class="text-left bg-slate-900/50">
-                                    <th class="p-3 border border-indigo-100/10">Critério</th>
-                                    <th class="p-3 border border-indigo-100/10">Grt1</th>
-                                    <th class="p-3 border border-indigo-100/10">Grt2</th>
+                                <tr class="text-left bg-[#e6d1b3]/70">
+                                    <th class="p-3 border border-amber-900/15">Critério</th>
+                                    <th class="p-3 border border-amber-900/15">Grt1</th>
+                                    <th class="p-3 border border-amber-900/15">Grt2</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-indigo-100/90">
+                            <tbody class="text-stone-700">
                                 <tr>
-                                    <td class="p-3 border border-indigo-100/10 font-semibold">Textura</td>
-                                    <td class="p-3 border border-indigo-100/10">Poiquiloblástica, rica em inclusões de quartzo/biotita.</td>
-                                    <td class="p-3 border border-indigo-100/10">Idioblástica, cristais mais límpidos e com poucas inclusões.</td>
+                                    <td class="p-3 border border-amber-900/15 font-semibold">Textura</td>
+                                    <td class="p-3 border border-amber-900/15">Poiquiloblástica, rica em inclusões de quartzo/biotita.</td>
+                                    <td class="p-3 border border-amber-900/15">Idioblástica, cristais mais límpidos e com poucas inclusões.</td>
                                 </tr>
-                                <tr class="bg-slate-900/30">
-                                    <td class="p-3 border border-indigo-100/10 font-semibold">Domínio</td>
-                                    <td class="p-3 border border-indigo-100/10">Associada ao paleossoma/melanossoma.</td>
-                                    <td class="p-3 border border-indigo-100/10">Associada ao leucossoma anatético.</td>
+                                <tr class="bg-[#efddc5]/75">
+                                    <td class="p-3 border border-amber-900/15 font-semibold">Domínio</td>
+                                    <td class="p-3 border border-amber-900/15">Associada ao paleossoma/melanossoma.</td>
+                                    <td class="p-3 border border-amber-900/15">Associada ao leucossoma anatético.</td>
                                 </tr>
                                 <tr>
-                                    <td class="p-3 border border-indigo-100/10 font-semibold">Significado</td>
-                                    <td class="p-3 border border-indigo-100/10">Registra metamorfismo prógrado antes do pico térmico.</td>
-                                    <td class="p-3 border border-indigo-100/10">Registra cristalização do fundido durante/apos anatexia.</td>
+                                    <td class="p-3 border border-amber-900/15 font-semibold">Significado</td>
+                                    <td class="p-3 border border-amber-900/15">Registra metamorfismo prógrado antes do pico térmico.</td>
+                                    <td class="p-3 border border-amber-900/15">Registra cristalização do fundido durante/apos anatexia.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -229,10 +230,10 @@
                 </div>
                 <aside class="glass p-5 flex flex-col h-[560px]">
                     <h4 class="text-xl mb-4 text-center">Assistente técnico do TCC</h4>
-                    <div id="academic-chat-output" class="flex-grow overflow-y-auto rounded-lg p-3 bg-slate-950/30 border border-indigo-100/10 text-sm"></div>
+                    <div id="academic-chat-output" class="flex-grow overflow-y-auto rounded-lg p-3 bg-[#ead8bc]/55 border border-amber-900/15 text-sm"></div>
                     <div class="mt-4 flex gap-2">
-                        <input id="academic-chat-input" type="text" placeholder="Pergunte sobre P-T, granada, anatexia..." class="flex-grow rounded-lg px-3 py-2 bg-slate-900/80 border border-indigo-200/20" onkeypress="handleEnter(event, 'academic')">
-                        <button onclick="askGemini('academic')" class="px-4 rounded-lg bg-indigo-500 hover:bg-indigo-400 transition"><i class="fa-solid fa-paper-plane"></i></button>
+                        <input id="academic-chat-input" type="text" placeholder="Pergunte sobre P-T, granada, anatexia..." class="flex-grow rounded-lg px-3 py-2 bg-[#f2e7d4]/90 border border-amber-900/20" onkeypress="handleEnter(event, 'academic')">
+                        <button onclick="askGemini('academic')" class="px-4 rounded-lg bg-[#8a4f2b] hover:bg-[#724125] text-amber-50 transition"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
                 </aside>
             </div>
@@ -241,43 +242,58 @@
         <section id="view-kids" class="hidden space-y-6">
             <div class="glass p-8">
                 <h3 class="text-3xl mb-2 text-center">Laboratório da Dona Granada 🌋</h3>
-                <p class="text-center text-indigo-100/80 mb-8">Explore a mesma faixa de temperatura discutida no TCC e veja quando a rocha começa a fundir.</p>
+                <p class="text-center text-stone-600 mb-8">Explore a mesma faixa de temperatura discutida no TCC e veja quando a rocha começa a fundir.</p>
                 <div class="grid md:grid-cols-2 gap-8 items-center">
                     <div class="space-y-5">
                         <label class="block font-semibold text-lg">Temperatura: <span id="valTemp">20</span>°C</label>
                         <input type="range" id="tempSlider" min="20" max="900" value="20" class="w-full accent-rose-500" oninput="atualizarSimulacao()">
                         <label class="block font-semibold text-lg">Pressão: <span id="valPress">5.0</span> kbar</label>
                         <input type="range" id="pressSlider" min="5" max="7" value="5" step="0.1" class="w-full accent-indigo-400" oninput="atualizarSimulacao()">
-                        <div class="rounded-xl p-4 bg-slate-900/40 border border-indigo-100/10 min-h-[110px]">
+                        <div class="rounded-xl p-4 bg-[#f1e2c9]/65 border border-amber-900/15 min-h-[110px]">
                             <h4 id="rock-status-title" class="text-xl">Sedimento inicial</h4>
-                            <p id="rock-status-desc" class="text-indigo-100/85 text-sm mt-1">Aperte o calor para iniciar o metamorfismo.</p>
+                            <p id="rock-status-desc" class="text-stone-700 text-sm mt-1">Aperte o calor para iniciar o metamorfismo.</p>
                         </div>
                     </div>
                     <div class="flex justify-center">
-                        <canvas id="rockCanvas" width="280" height="280" class="rounded-full border border-indigo-100/20 bg-slate-900/40"></canvas>
+                        <canvas id="rockCanvas" width="280" height="280" class="rounded-full border border-amber-900/20 bg-[#f1e2c9]/65"></canvas>
                     </div>
                 </div>
             </div>
 
             <div class="glass p-5 max-w-xl mx-auto h-[480px] flex flex-col">
                 <h4 class="text-center text-xl mb-3">Chat da Dona Granada ✨</h4>
-                <div id="kids-chat-output" class="flex-grow overflow-y-auto rounded-lg p-3 bg-slate-950/30 border border-indigo-100/10"></div>
+                <div id="kids-chat-output" class="flex-grow overflow-y-auto rounded-lg p-3 bg-[#ead8bc]/55 border border-amber-900/15"></div>
                 <div class="mt-4 flex gap-2">
-                    <input id="kids-chat-input" type="text" placeholder="Oi, Dona Granada!" class="flex-grow rounded-full px-4 py-2 bg-slate-900/80 border border-indigo-200/20" onkeypress="handleEnter(event, 'kids')">
-                    <button onclick="askGemini('kids')" class="w-11 h-11 rounded-full bg-rose-400 hover:bg-rose-300 text-slate-900 font-bold">✨</button>
+                    <input id="kids-chat-input" type="text" placeholder="Oi, Dona Granada!" class="flex-grow rounded-full px-4 py-2 bg-[#f2e7d4]/90 border border-amber-900/20" onkeypress="handleEnter(event, 'kids')">
+                    <button onclick="askGemini('kids')" class="w-11 h-11 rounded-full bg-[#a33e2f] hover:bg-[#873326] text-amber-50 font-bold">✨</button>
                 </div>
             </div>
         </section>
+
+
+        <section id="view-reference" class="hidden">
+            <div class="glass p-8 space-y-6">
+                <div class="text-center">
+                    <h3 class="text-3xl mb-2">Referência visual do projeto</h3>
+                    <p class="text-stone-700">A composição e as cores deste redesign seguem a imagem de referência, com tons terrosos, textura de papel e contraste acadêmico.</p>
+                </div>
+                <div class="rounded-2xl overflow-hidden border border-amber-900/20 shadow-lg bg-[var(--card-soft)]">
+                    <img src="https://placehold.co/1600x900/f5ecd8/2f2118?text=Imagem+de+referencia+anexada" alt="Imagem de referência geológica da Praia da Bacutia" class="w-full h-auto object-cover">
+                </div>
+                <p class="text-sm text-stone-600 text-center">Substitua o <code>src</code> da imagem por seu arquivo final para manter a mesma aba como painel de referência permanente.</p>
+            </div>
+        </section>
+
     </main>
 
-    <footer class="border-t border-indigo-100/10 py-7 text-center text-indigo-200/80 text-sm">
+    <footer class="border-t border-amber-900/15 py-7 text-center text-stone-600/80 text-sm">
         <p class="font-semibold">TCC Interativo — Pablo Salvato</p>
-        <p class="opacity-80">Design modernizado com base no tema: metamorfismo de alto grau na Bacutia.</p>
+        <p class="opacity-80">Design acadêmico-terroso inspirado na prancha geológica de referência da Bacutia.</p>
     </footer>
 
     <script>
         const apiKey = "AIzaSyDcHaFb2wVSyxpodcoy6lr1_hW5TKAVQDI";
-        const tabs = ['general', 'academic', 'kids'];
+        const tabs = ['general', 'academic', 'kids', 'reference'];
 
         document.getElementById('sliderControl').addEventListener('input', (e) => {
             document.getElementById('imgFront').style.width = `${e.target.value}%`;
@@ -318,10 +334,10 @@
                 title.innerText = 'Lama / Sedimento';
                 desc.innerText = `Baixo grau térmico (${temp}°C, ${pressure.toFixed(1)} kbar): material ainda não metamorfizado.`;
             } else if (temp < 700) {
-                ctx.fillStyle = '#5f5ca7';
+                ctx.fillStyle = '#7b6147';
                 title.innerText = 'Xisto';
                 desc.innerText = `Faixa de 400-700°C: início da foliação e crescimento mineral sem fusão.`;
-                ctx.strokeStyle = '#dbe1ff';
+                ctx.strokeStyle = '#eadbc6';
                 ctx.lineWidth = 2;
                 for (let i = 0; i < 6; i += 1) {
                     ctx.beginPath();
@@ -330,10 +346,10 @@
                     ctx.stroke();
                 }
             } else if (temp < 750) {
-                ctx.fillStyle = '#7c8cff';
+                ctx.fillStyle = '#8f7658';
                 title.innerText = 'Gnaisse';
                 desc.innerText = 'Faixa de 700-750°C: bandamento gnáissico bem desenvolvido, pré-anatexia.';
-                ctx.strokeStyle = '#dbe1ff';
+                ctx.strokeStyle = '#eadbc6';
                 ctx.lineWidth = 2;
                 for (let i = 0; i < 10; i += 1) {
                     ctx.beginPath();
@@ -411,15 +427,15 @@
             type: 'bar',
             data: {
                 labels: ['Protólito', 'Pico metamórfico', 'Retro'] ,
-                datasets: [{ label: 'Granada (%)', data: [0, 25, 20], backgroundColor: ['#4d5da0', '#ff7e9f', '#ffb067'] }]
+                datasets: [{ label: 'Granada (%)', data: [0, 25, 20], backgroundColor: ['#7b6147', '#a33e2f', '#bf7b3f'] }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#e9ecff' } } },
+                plugins: { legend: { labels: { color: '#3f2b20' } } },
                 scales: {
-                    x: { ticks: { color: '#cdd5ff' }, grid: { color: 'rgba(233,236,255,0.08)' } },
-                    y: { ticks: { color: '#cdd5ff' }, grid: { color: 'rgba(233,236,255,0.08)' } }
+                    x: { ticks: { color: '#5d4537' }, grid: { color: 'rgba(113, 79, 54, 0.12)' } },
+                    y: { ticks: { color: '#5d4537' }, grid: { color: 'rgba(113, 79, 54, 0.12)' } }
                 }
             }
         });
@@ -430,8 +446,8 @@
                 datasets: [{
                     label: 'Trajetória P-T',
                     data: [{ x: 400, y: 3 }, { x: 800, y: 7.5 }, { x: 700, y: 4.5 }],
-                    borderColor: '#7c8cff',
-                    backgroundColor: '#ff7e9f',
+                    borderColor: '#8a4f2b',
+                    backgroundColor: '#a33e2f',
                     pointRadius: 5,
                     showLine: true,
                     tension: 0.25
@@ -440,17 +456,17 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#e9ecff' } } },
+                plugins: { legend: { labels: { color: '#3f2b20' } } },
                 scales: {
                     x: {
-                        title: { display: true, text: 'Temperatura (°C)', color: '#e9ecff' },
-                        ticks: { color: '#cdd5ff' },
-                        grid: { color: 'rgba(233,236,255,0.08)' }
+                        title: { display: true, text: 'Temperatura (°C)', color: '#3f2b20' },
+                        ticks: { color: '#5d4537' },
+                        grid: { color: 'rgba(113, 79, 54, 0.12)' }
                     },
                     y: {
-                        title: { display: true, text: 'Pressão (kbar)', color: '#e9ecff' },
-                        ticks: { color: '#cdd5ff' },
-                        grid: { color: 'rgba(233,236,255,0.08)' }
+                        title: { display: true, text: 'Pressão (kbar)', color: '#3f2b20' },
+                        ticks: { color: '#5d4537' },
+                        grid: { color: 'rgba(113, 79, 54, 0.12)' }
                     }
                 }
             }
