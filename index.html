@@ -254,22 +254,7 @@
                     </div>
                     <div id="kids-chat-output" class="flex-grow overflow-y-auto bg-white p-3 rounded-xl flex flex-col gap-3 mb-4 font-comic text-sm">
                         <div class="ai-msg chat-message">Olá! Sou a Dona Granada. 👵🔥
-Temos dois jeitos de conversar: "Curta" (1–3 frases) ou "Múltipla escolha" (A/B/C + resposta certa).
-Escolha um modo e pergunte qualquer coisa, meu pedregulho!</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="kids-response-style" class="block text-xs font-bold text-[#BF360C] mb-1">Estilo da resposta</label>
-                        <select id="kids-response-style" class="w-full p-2 rounded-lg border-2 border-[#FFAB91] bg-white text-sm font-comic focus:outline-none">
-                            <option value="short">Curta (1–3 frases)</option>
-                            <option value="quiz">Múltipla escolha (A/B/C + resposta correta)</option>
-                        </select>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-                        <select id="kids-response-style-shortcut" class="p-2 rounded-xl border-2 border-[#FFAB91] font-comic text-[#5D4037] bg-white" onchange="document.getElementById('kids-response-style').value = this.value">
-                            <option value="short">Resposta curtinha</option>
-                            <option value="quiz">Múltipla escolha</option>
-                        </select>
-                        <p class="text-xs text-[#6D4C41] font-comic px-1 self-center">Escolha o estilo antes de enviar a pergunta.</p>
+Pergunte qualquer coisa sobre as rochas da Bacutia, meu pedregulho!</div>
                     </div>
                     <div class="flex gap-2">
                         <input type="text" id="kids-chat-input" placeholder="Diz olá!" class="flex-grow p-3 rounded-full border-2 border-[#FFAB91] focus:outline-none font-comic" onkeypress="handleEnter(event, 'kids')">
@@ -343,11 +328,9 @@ Regras de Fala:
 - Chame o usuário de "meu pedregulho", "pequeno geólogo" ou "cascalho".
 - Nunca use termos técnicos difíceis sem explicar (ex: se falar "metamorfismo", diga "a grande transformação").
 - Dê prioridade a respostas curtas: no máximo 3 frases.
-- Se o pedido for em modo quiz, responda com 1 pergunta + 3 alternativas (A, B, C) e indique a resposta correta no final.
 
 Prefira vocabulário infantil, frases curtas e exemplos do cotidiano da criança.
-
-No modo curto, mantenha a resposta com até 60 palavras.
+- Mantenha a resposta com até 60 palavras.
 
 Exemplo de fala: "No meu tempo, aqui era tudo lava! 🔥 Eu nasci num aperto danado, parecia ônibus lotado, mas foi assim que fiquei dura e bonita! 💅"
 
@@ -355,12 +338,6 @@ ${TCC_CONTEXT}`
         };
 
         function buildKidsInstruction(text) {
-            const style = document.getElementById('kids-response-style')?.value || 'short';
-            if (style === 'quiz') {
-                return `${text}
-
-Responda obrigatoriamente no formato de múltipla escolha (A, B, C), com no máximo 1 linha por alternativa, e no fim escreva: "Resposta certa: X".`;
-            }
             return `${text}
 
 Responda de forma curtinha, no máximo 3 frases.`;
