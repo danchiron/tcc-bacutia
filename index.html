@@ -265,7 +265,7 @@ Escolha um modo e pergunte qualquer coisa, meu pedregulho!</div>
                         </select>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-                        <select id="kids-response-style" class="p-2 rounded-xl border-2 border-[#FFAB91] font-comic text-[#5D4037] bg-white">
+                        <select id="kids-response-style-shortcut" class="p-2 rounded-xl border-2 border-[#FFAB91] font-comic text-[#5D4037] bg-white" onchange="document.getElementById('kids-response-style').value = this.value">
                             <option value="short">Resposta curtinha</option>
                             <option value="quiz">Múltipla escolha</option>
                         </select>
@@ -371,10 +371,8 @@ Responda de forma curtinha, no máximo 3 frases.`;
         }
 
         async function askGemini(mode) {
-            const inputId = `${mode}-chat-input`;
-            const outputId = `${mode}-chat-output`;
-            const inputEl = document.getElementById(inputId);
-            const outputEl = document.getElementById(outputId);
+            const inputEl = document.getElementById(`${mode}-chat-input`);
+            const outputEl = document.getElementById(`${mode}-chat-output`);
             const text = inputEl.value.trim();
             if (!text) return;
 
@@ -400,14 +398,11 @@ Responda de forma curtinha, no máximo 3 frases.`;
                         : { maxOutputTokens: 512, temperature: 0.4 }
                 };
 
-                const endpoints = [
-                    `${GEMINI_API_BASE_URL}/models/${PRIMARY_MODEL}:generateContent?key=${apiKey}`,
-                    `${GEMINI_API_BASE_URL}/models/${FALLBACK_MODEL}:generateContent?key=${apiKey}`
-                ];
+                const endpoints = [PRIMARY_MODEL, FALLBACK_MODEL]
+                    .map(model => `${GEMINI_API_BASE_URL}/models/${model}:generateContent?key=${apiKey}`);
 
                 let response;
-                let requestError;
-
+                let lastError = null;
                 for (const endpoint of endpoints) {
                     response = await fetch(endpoint, {
                         method: 'POST',
@@ -428,24 +423,31 @@ Responda de forma curtinha, no máximo 3 frases.`;
                 }
 
                 const data = await response.json();
-                const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                const answer = data?.candidates?.[0]?.content?.parts
+                    ?.map(part => part.text || '')
+                    .join('')
+                    .trim();
 
                 if (!answer) {
                     throw new Error('Resposta vazia da API Gemini.');
                 }
 
+                loading.remove();
                 const aiMsg = document.createElement('div');
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
                 aiMsg.innerText = answer;
                 outputEl.appendChild(aiMsg);
+                outputEl.scrollTop = outputEl.scrollHeight;
             } catch (error) {
+                loading.remove();
                 const aiMsg = document.createElement('div');
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
-                aiMsg.innerText = `Ops, não consegui responder agora. Detalhe: ${error.message}`;
+                aiMsg.innerText = `Não consegui responder agora (${error.message}). Tente novamente em instantes.`;
                 outputEl.appendChild(aiMsg);
             } finally {
                 loading.remove();
                 outputEl.scrollTop = outputEl.scrollHeight;
+                console.error(error);
             }
         }
 
