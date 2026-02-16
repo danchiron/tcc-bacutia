@@ -265,7 +265,7 @@ Escolha um modo e pergunte qualquer coisa, meu pedregulho!</div>
                         </select>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-                        <select id="kids-response-style" class="p-2 rounded-xl border-2 border-[#FFAB91] font-comic text-[#5D4037] bg-white">
+                        <select id="kids-response-style-shortcut" class="p-2 rounded-xl border-2 border-[#FFAB91] font-comic text-[#5D4037] bg-white" onchange="document.getElementById('kids-response-style').value = this.value">
                             <option value="short">Resposta curtinha</option>
                             <option value="quiz">Múltipla escolha</option>
                         </select>
@@ -371,14 +371,10 @@ Responda de forma curtinha, no máximo 3 frases.`;
         }
 
         async function askGemini(mode) {
-            const inputId = `${mode}-chat-input`;
-            const outputId = `${mode}-chat-output`;
-            const inputEl = document.getElementById(inputId);
-            const outputEl = document.getElementById(outputId);
+            const inputEl = document.getElementById(`${mode}-chat-input`);
+            const outputEl = document.getElementById(`${mode}-chat-output`);
             const text = inputEl.value.trim();
             if (!text) return;
-            const extraInstruction = mode === 'kids' ? getKidsPromptExtraInstruction() : '';
-            const systemPrompt = extraInstruction ? `${SYSTEM_PROMPTS[mode]}\n\n${extraInstruction}` : SYSTEM_PROMPTS[mode];
 
             const userMsg = document.createElement('div');
             userMsg.className = `user-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
@@ -392,14 +388,6 @@ Responda de forma curtinha, no máximo 3 frases.`;
             loading.innerText = '...';
             outputEl.appendChild(loading);
 
-            const payload = {
-                system_instruction: { parts: [{ text: SYSTEM_PROMPTS[mode] }] },
-                contents: [{ role: 'user', parts: [{ text }] }]
-            };
-
-            const modelsToTry = [PRIMARY_MODEL, FALLBACK_MODEL];
-            let lastError = null;
-
             try {
                 const userText = mode === 'kids' ? buildKidsInstruction(text) : text;
                 const payload = {
@@ -410,13 +398,11 @@ Responda de forma curtinha, no máximo 3 frases.`;
                         : { maxOutputTokens: 512, temperature: 0.4 }
                 };
 
-                const endpoints = [
-                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`
-                ];
+                const endpoints = [PRIMARY_MODEL, FALLBACK_MODEL]
+                    .map(model => `${GEMINI_API_BASE_URL}/models/${model}:generateContent?key=${apiKey}`);
 
                 let response;
-                let lastError;
+                let lastError = null;
                 for (const endpoint of endpoints) {
                     response = await fetch(endpoint, {
                         method: 'POST',
@@ -434,20 +420,30 @@ Responda de forma curtinha, no máximo 3 frases.`;
                     throw lastError || new Error('Falha ao conectar com o Gemini.');
                 }
 
-
                 const data = await response.json();
-                const answer = data?.answer;
+                const answer = data?.candidates?.[0]?.content?.parts
+                    ?.map(part => part.text || '')
+                    .join('')
+                    .trim();
 
                 if (!answer) {
                     throw new Error('Resposta vazia da API Gemini.');
                 }
 
-                const errorCode = getFriendlyErrorCode(error.status, error.rawMessage || error.message);
+                loading.remove();
                 const aiMsg = document.createElement('div');
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
-                aiMsg.innerText = `${getFriendlyErrorMessage(errorCode)} (código: ${errorCode})`;
+                aiMsg.innerText = answer;
                 outputEl.appendChild(aiMsg);
                 outputEl.scrollTop = outputEl.scrollHeight;
+            } catch (error) {
+                loading.remove();
+                const aiMsg = document.createElement('div');
+                aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
+                aiMsg.innerText = `Não consegui responder agora (${error.message}). Tente novamente em instantes.`;
+                outputEl.appendChild(aiMsg);
+                outputEl.scrollTop = outputEl.scrollHeight;
+                console.error(error);
             }
         }
 
