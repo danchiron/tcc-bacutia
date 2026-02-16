@@ -61,6 +61,34 @@
             content: '...';
             animation: ellipsis 1.5s infinite;
         }
+
+        .hero-background {
+            position: relative;
+            overflow: hidden;
+            background-color: #5D4037;
+            isolation: isolate;
+        }
+
+        .hero-background::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(160deg, rgba(20, 15, 10, 0.42) 0%, rgba(20, 15, 10, 0.3) 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .hero-background > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .hero-background::before {
+                background: linear-gradient(160deg, rgba(20, 15, 10, 0.3) 0%, rgba(20, 15, 10, 0.18) 100%);
+            }
+        }
+
         @keyframes ellipsis {
             0% { content: '.'; }
             33% { content: '..'; }
@@ -70,7 +98,7 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
-    <header class="bg-[#5D4037] text-white py-8 shadow-lg">
+    <header class="hero-background text-white py-8 shadow-lg">
         <div class="container mx-auto px-4 text-center">
             <h1 class="text-3xl md:text-5xl font-bold mb-2 text-[#FFCCBC]">O Segredo das Pedras da Bacutia</h1>
             <p class="text-lg md:text-xl font-light text-gray-200 uppercase tracking-widest">Caracterização Petrográfica e Evolução Textural da Granada</p>
