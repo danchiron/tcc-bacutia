@@ -311,36 +311,32 @@ Pergunte qualquer coisa sobre as rochas da Bacutia, meu pedregulho!</div>
 
         function handleEnter(e, mode) { if (e.key === 'Enter') askGemini(mode); }
 
-        const TCC_CONTEXT = `
-            Contexto do TCC: Pablo de Oliveira Salvato (UFES), tema "Caracterização Petrográfica e Evolução Textural da Granada em paragnaisse migmatizado da Bacutia (Guarapari-ES)".
-            Pontos-chave: pico metamórfico ~800 °C e ~7,5 kbar; trajetória prógrada com fusão parcial; reação simplificada Bt + Qtz + Pl -> Grt + Kfs + melt; fase retrógrada com cristalização do melt.
-            Ao responder, mantenha o foco nesse TCC e, se algo não estiver no contexto, diga que é uma inferência.
-        `;
-
-        const SYSTEM_PROMPTS = {
-            academic: `Você é um assistente técnico do TCC do Pablo Salvato. Responda com linguagem formal e objetiva para dúvidas acadêmicas. ${TCC_CONTEXT}`,
-            kids: `Aja como a "Dona Granada".
-Quem é você: Uma rocha mineral vermelha, muito dura e brilhante, que tem 600 milhões de anos. Você "mora" na Praia da Bacutia.
-Personalidade: Uma avó rabugenta (porque odeia frio), mas muito carinhosa e orgulhosa de ser "nascida no fogo". Você adora se gabar de como aguentou 800 graus sem derreter totalmente.
-Missão: Explicar geologia para crianças de 8 anos de forma simples e divertida.
-Regras de Fala:
-- Use emojis (🌋, 💎, 🔥, 👵).
-- Chame o usuário de "meu pedregulho", "pequeno geólogo" ou "cascalho".
-- Nunca use termos técnicos difíceis sem explicar (ex: se falar "metamorfismo", diga "a grande transformação").
-- Dê prioridade a respostas curtas: no máximo 3 frases.
-
-Prefira vocabulário infantil, frases curtas e exemplos do cotidiano da criança.
-- Mantenha a resposta com até 60 palavras.
-
-Exemplo de fala: "No meu tempo, aqui era tudo lava! 🔥 Eu nasci num aperto danado, parecia ônibus lotado, mas foi assim que fiquei dura e bonita! 💅"
-
-${TCC_CONTEXT}`
-        };
-
         function buildKidsInstruction(text) {
             return `${text}
 
 Responda de forma curtinha, no máximo 3 frases.`;
+        }
+
+        function mapBackendError(message) {
+            const errorText = String(message || '').toLowerCase();
+
+            if (errorText.includes('limite') || errorText.includes('429')) {
+                return 'A IA está com muitas perguntas agora. Tente novamente em alguns instantes.';
+            }
+
+            if (errorText.includes('autenticação') || errorText.includes('acesso negado') || errorText.includes('401') || errorText.includes('403')) {
+                return 'A conexão segura com a IA falhou. Já fomos avisados para corrigir isso.';
+            }
+
+            if (errorText.includes('modo inválido') || errorText.includes('payload inválido')) {
+                return 'Não consegui entender sua pergunta. Tente reformular e enviar novamente.';
+            }
+
+            if (errorText.includes('resposta vazia') || errorText.includes('inválida')) {
+                return 'Recebi uma resposta incompleta da IA. Vamos tentar de novo?';
+            }
+
+            return 'Não consegui responder agora. Tente novamente em instantes.';
         }
 
         async function askGemini(mode) {
@@ -363,41 +359,21 @@ Responda de forma curtinha, no máximo 3 frases.`;
 
             try {
                 const userText = mode === 'kids' ? buildKidsInstruction(text) : text;
-                const payload = {
-                    system_instruction: { parts: [{ text: SYSTEM_PROMPTS[mode] }] },
-                    contents: [{ role: 'user', parts: [{ text: userText }] }],
-                    generationConfig: mode === 'kids'
-                        ? { maxOutputTokens: 180, temperature: 0.8 }
-                        : { maxOutputTokens: 512, temperature: 0.4 }
-                };
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode, text: userText })
+                });
 
-                const endpoints = [PRIMARY_MODEL, FALLBACK_MODEL]
-                    .map(model => `${GEMINI_API_BASE_URL}/models/${model}:generateContent?key=${apiKey}`);
-
-                let response;
-                let requestError = null;
-                for (const endpoint of endpoints) {
-                    response = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (response.ok) {
-                        requestError = null;
-                        break;
-                    }
-
-                    requestError = new Error(`Gemini retornou status ${response.status}`);
+                let data = null;
+                try {
+                    data = await response.json();
+                } catch (parseError) {
+                    throw new Error('Resposta inválida do servidor.');
                 }
 
-                if (!response.ok) {
-                    throw new Error(`Servidor retornou status ${response.status}.`);
-                }
-
-                const data = await response.json();
-                if (data?.error) {
-                    throw new Error(data.error);
+                if (!response.ok || data?.error) {
+                    throw new Error(mapBackendError(data?.error || `status ${response.status}`));
                 }
 
                 const answer = data?.answer?.trim();
@@ -428,7 +404,7 @@ Responda de forma curtinha, no máximo 3 frases.`;
                 }
                 const aiMsg = document.createElement('div');
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
-                aiMsg.innerText = `Não consegui responder agora. ${error.message || 'Tente novamente em instantes.'}`;
+                aiMsg.innerText = error.message || 'Não consegui responder agora. Tente novamente em instantes.';
                 outputEl.appendChild(aiMsg);
                 console.error(error);
             } finally {
