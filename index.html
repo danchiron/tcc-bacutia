@@ -289,6 +289,20 @@ Pergunte qualquer coisa sobre as rochas da Bacutia, meu pedregulho!</div>
         <p class="text-xs opacity-50 mt-2">&copy; 2025 Pablo Salvato & Gemini AI</p>
     </footer>
 
+    <button id="ai-debug-toggle" class="fixed bottom-4 right-4 z-40 h-10 w-10 rounded-full bg-[#3E2723] text-white opacity-15 hover:opacity-90 transition-opacity" aria-label="Abrir logs de IA" title="Logs de IA">🪨</button>
+
+    <aside id="ai-debug-panel" class="hidden fixed bottom-16 right-4 z-40 w-[min(92vw,460px)] bg-white border border-gray-300 rounded-xl shadow-2xl">
+        <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50 rounded-t-xl">
+            <h3 class="font-semibold text-sm text-gray-800">Logs ocultos da IA</h3>
+            <div class="flex items-center gap-2">
+                <button id="ai-debug-clear" class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700">Limpar</button>
+                <button id="ai-debug-close" class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700">Fechar</button>
+            </div>
+        </div>
+        <div class="px-4 pt-2 text-xs text-gray-500">Dica: clique na pedrinha no canto inferior direito para esconder/mostrar.</div>
+        <pre id="ai-debug-output" class="h-64 overflow-y-auto p-4 text-xs leading-relaxed text-gray-800 bg-white rounded-b-xl whitespace-pre-wrap">Sem logs ainda.</pre>
+    </aside>
+
     <script>
 
         function switchTab(tabId) {
@@ -337,6 +351,47 @@ ${TCC_CONTEXT}`
                 description: 'Imagem em alta resolução carregada localmente pelo arquivo assets/infografico-bacutia.png do projeto.'
             }
         ];
+
+        const AI_DEBUG_LOG_LIMIT = 40;
+        const aiDebugLogs = [];
+
+        function addAiDebugLog(entry) {
+            const safeEntry = {
+                timestamp: new Date().toISOString(),
+                ...entry,
+            };
+
+            aiDebugLogs.push(safeEntry);
+            if (aiDebugLogs.length > AI_DEBUG_LOG_LIMIT) {
+                aiDebugLogs.shift();
+            }
+
+            const output = document.getElementById('ai-debug-output');
+            if (!output) return;
+
+            output.textContent = aiDebugLogs
+                .map((item) => JSON.stringify(item, null, 2))
+                .join('\n\n');
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function setupAiDebugPanel() {
+            const toggle = document.getElementById('ai-debug-toggle');
+            const panel = document.getElementById('ai-debug-panel');
+            const closeBtn = document.getElementById('ai-debug-close');
+            const clearBtn = document.getElementById('ai-debug-clear');
+
+            if (!toggle || !panel || !closeBtn || !clearBtn) return;
+
+            const togglePanel = () => panel.classList.toggle('hidden');
+            toggle.addEventListener('click', togglePanel);
+            closeBtn.addEventListener('click', () => panel.classList.add('hidden'));
+            clearBtn.addEventListener('click', () => {
+                aiDebugLogs.length = 0;
+                const output = document.getElementById('ai-debug-output');
+                if (output) output.textContent = 'Sem logs ainda.';
+            });
+        }
 
         function renderInfografico() {
             const galleryEl = document.getElementById('infografico-gallery');
@@ -396,13 +451,36 @@ Responda de forma curtinha, no máximo 3 frases.`;
             let lastError = null;
 
             for (const endpoint of endpoints) {
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                let response;
+
+                try {
+                    response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                } catch (error) {
+                    addAiDebugLog({
+                        type: 'network-error',
+                        endpoint,
+                        mode: payload.mode,
+                        message: error?.message || 'Erro de rede desconhecido',
+                    });
+                    lastError = new Error('Erro de rede ao chamar o chat. Verifique se o backend está online.');
+                    continue;
+                }
 
                 const data = await response.json().catch(() => null);
+
+                addAiDebugLog({
+                    type: response.ok ? 'request-ok' : 'request-failed',
+                    endpoint,
+                    mode: payload.mode,
+                    status: response.status,
+                    error: data?.error || null,
+                    metadata: data?.metadata || null,
+                    hasAnswer: Boolean(data?.answer),
+                });
 
                 if (response.ok) {
                     return { response, data, endpoint };
@@ -421,6 +499,7 @@ Responda de forma curtinha, no máximo 3 frases.`;
             throw lastError || new Error('Não foi possível acessar o endpoint de chat.');
         }
 
+        setupAiDebugPanel();
         renderInfografico();
 
         async function askGemini(mode) {
