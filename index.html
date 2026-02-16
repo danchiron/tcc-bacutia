@@ -361,6 +361,8 @@ Responda de forma curtinha, no máximo 3 frases.`;
             loading.innerText = '...';
             outputEl.appendChild(loading);
 
+            let caughtError = null;
+
             try {
                 const userText = mode === 'kids' ? buildKidsInstruction(text) : text;
                 const payload = {
@@ -423,6 +425,7 @@ Responda de forma curtinha, no máximo 3 frases.`;
 
                 outputEl.scrollTop = outputEl.scrollHeight;
             } catch (error) {
+                caughtError = error;
                 if (loading.parentNode) {
                     loading.remove();
                 }
@@ -430,7 +433,7 @@ Responda de forma curtinha, no máximo 3 frases.`;
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
                 aiMsg.innerText = `Não consegui responder agora. ${error.message || 'Tente novamente em instantes.'}`;
                 outputEl.appendChild(aiMsg);
-                console.error(error);
+                console.error(caughtError);
             } finally {
                 if (loading.parentNode) {
                     loading.remove();
