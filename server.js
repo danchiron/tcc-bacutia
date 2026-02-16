@@ -85,10 +85,12 @@ async function requestGemini({ apiKey, mode, text }) {
   const endpoints = [
     { model: 'gemini-2.0-flash', url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent' },
     { model: 'gemini-2.0-flash', url: 'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent' },
+    { model: 'gemini-1.5-flash', url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent' },
     { model: 'gemini-1.5-flash', url: 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent' },
   ];
 
   let lastFailure = null;
+  const attempts = [];
 
   for (const endpoint of endpoints) {
     const requestUrl = `${endpoint.url}?key=${encodeURIComponent(apiKey)}`;
@@ -96,6 +98,12 @@ async function requestGemini({ apiKey, mode, text }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+    });
+
+    attempts.push({
+      model: endpoint.model,
+      endpoint: endpoint.url.replace('https://generativelanguage.googleapis.com/', ''),
+      status: response.status,
     });
 
     if (response.ok) {
@@ -114,7 +122,11 @@ async function requestGemini({ apiKey, mode, text }) {
       return {
         ok: true,
         answer,
-        metadata: { model: endpoint.model, endpoint: endpoint.url.replace('https://generativelanguage.googleapis.com/', '') },
+        metadata: {
+          model: endpoint.model,
+          endpoint: endpoint.url.replace('https://generativelanguage.googleapis.com/', ''),
+          attempts,
+        },
       };
     }
 
@@ -124,6 +136,7 @@ async function requestGemini({ apiKey, mode, text }) {
       mapped,
       providerStatus: response.status,
       details: `Falha ao usar ${endpoint.url}`,
+      attempts,
     };
 
     if (response.status !== 404 && response.status !== 405) {
@@ -159,6 +172,7 @@ async function handleChat(req, res) {
         metadata: {
           providerStatus: result.providerStatus,
           details: result.details,
+          attempts: result.attempts || [],
         },
       });
     }
