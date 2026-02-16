@@ -317,6 +317,28 @@ Pergunte qualquer coisa sobre as rochas da Bacutia, meu pedregulho!</div>
 Responda de forma curtinha, no máximo 3 frases.`;
         }
 
+        function mapBackendError(message) {
+            const errorText = String(message || '').toLowerCase();
+
+            if (errorText.includes('limite') || errorText.includes('429')) {
+                return 'A IA está com muitas perguntas agora. Tente novamente em alguns instantes.';
+            }
+
+            if (errorText.includes('autenticação') || errorText.includes('acesso negado') || errorText.includes('401') || errorText.includes('403')) {
+                return 'A conexão segura com a IA falhou. Já fomos avisados para corrigir isso.';
+            }
+
+            if (errorText.includes('modo inválido') || errorText.includes('payload inválido')) {
+                return 'Não consegui entender sua pergunta. Tente reformular e enviar novamente.';
+            }
+
+            if (errorText.includes('resposta vazia') || errorText.includes('inválida')) {
+                return 'Recebi uma resposta incompleta da IA. Vamos tentar de novo?';
+            }
+
+            return 'Não consegui responder agora. Tente novamente em instantes.';
+        }
+
         async function askGemini(mode) {
             const inputEl = document.getElementById(`${mode}-chat-input`);
             const outputEl = document.getElementById(`${mode}-chat-output`);
@@ -363,9 +385,8 @@ Responda de forma curtinha, no máximo 3 frases.`;
                     throw requestError;
                 }
 
-                const data = await response.json();
-                if (data?.error) {
-                    throw new Error(data.error);
+                if (!response.ok || data?.error) {
+                    throw new Error(mapBackendError(data?.error || `status ${response.status}`));
                 }
 
                 const answer = data?.answer?.trim();
@@ -397,7 +418,7 @@ Responda de forma curtinha, no máximo 3 frases.`;
                 }
                 const aiMsg = document.createElement('div');
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
-                aiMsg.innerText = `Não consegui responder agora. ${error.message || 'Tente novamente em instantes.'}`;
+                aiMsg.innerText = error.message || 'Não consegui responder agora. Tente novamente em instantes.';
                 outputEl.appendChild(aiMsg);
                 console.error(caughtError);
             } finally {
