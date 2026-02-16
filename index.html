@@ -176,12 +176,30 @@
                         <div class="space-y-6">
                             <label class="block font-bold">🔥 Temperatura</label>
                             <input type="range" id="tempSlider" min="1" max="100" value="10" class="w-full accent-red-600" oninput="updateRock()">
+                            <p class="text-sm text-gray-700">Escala aproximada: <span id="tempValue" class="font-bold">260</span> °C</p>
                             <label class="block font-bold">⛰️ Pressão</label>
                             <input type="range" id="pressSlider" min="1" max="100" value="10" class="w-full accent-stone-700" oninput="updateRock()">
+                            <p class="text-sm text-gray-700">Escala aproximada: <span id="pressValue" class="font-bold">1.7</span> kbar</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="setRockPreset('low')" class="bg-stone-200 hover:bg-stone-300 px-2 py-2 rounded text-sm">Baixo grau</button>
+                                <button onclick="setRockPreset('medium')" class="bg-amber-200 hover:bg-amber-300 px-2 py-2 rounded text-sm">Médio grau</button>
+                                <button onclick="setRockPreset('peak')" class="bg-red-200 hover:bg-red-300 px-2 py-2 rounded text-sm">Pico Bacutia</button>
+                                <button onclick="setRockPreset('retro')" class="bg-blue-200 hover:bg-blue-300 px-2 py-2 rounded text-sm">Retrogradação</button>
+                            </div>
                             <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
                                 <h4 class="font-bold" id="rock-status-title">Lama do Mar</h4>
                                 <p class="text-sm" id="rock-status-desc">Arraste os controles!</p>
+                                <div class="mt-3">
+                                    <p class="text-xs uppercase tracking-wide text-gray-600">Fração de fusão parcial</p>
+                                    <div class="w-full bg-blue-100 rounded-full h-3 mt-1 overflow-hidden">
+                                        <div id="meltBar" class="h-3 bg-gradient-to-r from-amber-300 to-red-500 rounded-full" style="width: 0%"></div>
+                                    </div>
+                                    <p class="text-xs mt-1 text-gray-700" id="meltText">0% de melt</p>
+                                </div>
                             </div>
+                            <p class="text-xs text-gray-600 leading-relaxed">
+                                Modelo educativo inspirado em trajetórias P-T de metamorfismo regional (baixo grau → anfibolito → migmatito) e na condição de pico reportada no TCC (~800 °C / 7,5 kbar).
+                            </p>
                         </div>
                         <div class="flex items-center justify-center">
                             <canvas id="rockCanvas" width="250" height="250" class="rounded-full bg-gray-50 shadow-inner"></canvas>
@@ -296,29 +314,117 @@
             options: { responsive: true, maintainAspectRatio: false }
         });
 
+        function sliderToTemperature(sliderValue) {
+            return Math.round(200 + sliderValue * 6);
+        }
+
+        function sliderToPressure(sliderValue) {
+            return Number((1 + sliderValue * 0.09).toFixed(1));
+        }
+
+        function setRockPreset(preset) {
+            const presets = {
+                low: { t: 20, p: 22 },
+                medium: { t: 52, p: 58 },
+                peak: { t: 100, p: 72 },
+                retro: { t: 78, p: 40 }
+            };
+            const selected = presets[preset];
+            if (!selected) return;
+            document.getElementById('tempSlider').value = selected.t;
+            document.getElementById('pressSlider').value = selected.p;
+            updateRock();
+        }
+
         function updateRock() {
-            const T = parseInt(document.getElementById('tempSlider').value);
-            const P = parseInt(document.getElementById('pressSlider').value);
+            const Tslider = parseInt(document.getElementById('tempSlider').value);
+            const Pslider = parseInt(document.getElementById('pressSlider').value);
+            const temperature = sliderToTemperature(Tslider);
+            const pressure = sliderToPressure(Pslider);
+
+            document.getElementById('tempValue').innerText = temperature;
+            document.getElementById('pressValue').innerText = pressure;
+
             const canvas = document.getElementById('rockCanvas');
             const ctx = canvas.getContext('2d');
-            ctx.clearRect(0,0,250,250);
+            ctx.clearRect(0, 0, 250, 250);
 
-            let baseColor = T < 40 ? '#8D6E63' : (T < 80 ? '#5D4037' : '#B71C1C');
-            ctx.fillStyle = baseColor;
-            ctx.beginPath(); ctx.arc(125, 125, 100, 0, Math.PI*2); ctx.fill();
+            const geothermalIntensity = Math.min(1, Math.max(0, (temperature - 250) / 600));
+            const pressureIntensity = Math.min(1, Math.max(0, (pressure - 1) / 8));
 
-            if (P > 30) {
-                ctx.strokeStyle = '#3E2723';
-                ctx.lineWidth = P/20;
-                for(let i=50; i<200; i+=20) {
-                    ctx.beginPath(); ctx.moveTo(50, i); ctx.lineTo(200, i); ctx.stroke();
+            let baseColor = '#8D6E63';
+            if (temperature >= 680 && pressure >= 5.8) {
+                baseColor = '#B71C1C';
+            } else if (temperature >= 520 && pressure >= 3.8) {
+                baseColor = '#6D4C41';
+            }
+
+            const gradient = ctx.createRadialGradient(90, 80, 30, 125, 125, 120);
+            gradient.addColorStop(0, '#FBE9E7');
+            gradient.addColorStop(0.45, baseColor);
+            gradient.addColorStop(1, '#3E2723');
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(125, 125, 100, 0, Math.PI * 2);
+            ctx.fill();
+
+            const foliationDensity = Math.floor(4 + pressureIntensity * 12);
+            ctx.strokeStyle = 'rgba(30, 20, 15, 0.45)';
+            ctx.lineWidth = 1 + pressureIntensity * 3;
+            for (let i = 0; i < foliationDensity; i++) {
+                const y = 60 + i * (130 / foliationDensity);
+                const offset = Math.sin(i * 0.8 + geothermalIntensity * 3) * 10;
+                ctx.beginPath();
+                ctx.moveTo(40, y + offset);
+                ctx.quadraticCurveTo(125, y - offset * 0.5, 210, y + offset);
+                ctx.stroke();
+            }
+
+            const meltFraction = Math.max(0, Math.min(1, ((temperature - 680) / 160 + (pressure - 5.5) / 4) / 2));
+            const meltPercent = Math.round(meltFraction * 100);
+
+            if (meltFraction > 0.04) {
+                const veins = Math.max(1, Math.floor(meltFraction * 10));
+                ctx.fillStyle = 'rgba(255, 230, 150, 0.85)';
+                for (let i = 0; i < veins; i++) {
+                    const x = 60 + ((i * 31) % 130);
+                    const y = 75 + ((i * 47) % 105);
+                    const r = 4 + meltFraction * 10;
+                    ctx.beginPath();
+                    ctx.ellipse(x, y, r, r * 0.5, i, 0, Math.PI * 2);
+                    ctx.fill();
                 }
             }
 
-            if (T > 60 && P > 40) {
-                document.getElementById('rock-status-title').innerText = "MIGMATITO!";
-                document.getElementById('rock-status-desc').innerText = "Você criou as condições da Bacutia!";
+            document.getElementById('meltBar').style.width = `${meltPercent}%`;
+            document.getElementById('meltText').innerText = `${meltPercent}% de melt`;
+
+            let title = 'Sedimento marinho compactado';
+            let desc = 'Baixo grau metamórfico: minerais finos e pouca reorganização.';
+
+            if (temperature >= 460 && pressure >= 3.2) {
+                title = 'Paragnaisse em metamorfismo progressivo';
+                desc = 'Biotita + quartzo + plagioclásio se reorganizam com foliação mais marcada.';
             }
+
+            if (temperature >= 620 && pressure >= 5.2) {
+                title = 'Zona da reação de formação de granada';
+                desc = 'Reação aproximada: Bt + Qtz + Pl → Grt + Kfs + melt. Aparecem porções leucocráticas.';
+            }
+
+            if (temperature >= 760 && pressure >= 6.8) {
+                title = 'Pico metamórfico da Bacutia (migmatito)';
+                desc = 'Condição de pico próxima de 800 °C / 7,5 kbar: anatexia parcial e crescimento de granada.';
+            }
+
+            if (temperature >= 700 && pressure < 5.4) {
+                title = 'Retrogradação em descompressão';
+                desc = 'Durante o resfriamento e queda de pressão, o melt cristaliza e novas texturas de equilíbrio surgem.';
+            }
+
+            document.getElementById('rock-status-title').innerText = title;
+            document.getElementById('rock-status-desc').innerText = desc;
         }
         updateRock();
     </script>
