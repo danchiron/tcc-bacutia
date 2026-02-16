@@ -85,13 +85,13 @@
         <div class="container mx-auto px-4">
             <div class="flex flex-wrap justify-center space-x-1 py-3">
                 <button onclick="switchTab('general')" id="tab-general" class="px-4 md:px-8 py-3 rounded-t-lg font-bold transition-all active-tab shadow-sm">
-                    🔍 Geral
+                    Geral
                 </button>
                 <button onclick="switchTab('academic')" id="tab-academic" class="px-4 md:px-8 py-3 rounded-t-lg font-bold transition-all inactive-tab shadow-sm">
-                    🎓 Académico
+                    Académico
                 </button>
                 <button onclick="switchTab('kids')" id="tab-kids" class="px-4 md:px-8 py-3 rounded-t-lg font-bold transition-all inactive-tab shadow-sm">
-                    🎨 Interativo
+                    Interativo
                 </button>
             </div>
         </div>
@@ -105,17 +105,24 @@
                 <p class="text-lg text-gray-700 leading-relaxed">
                     A Praia da Bacutia não é apenas um cartão-postal. Suas rochas guardam o registro de um evento cataclísmico: a colisão de continentes que formou o Orógeno Araçuaí. O Pablo mergulhou na escala microscópica para entender como a lama do mar virou pedra e cristalizou as granadas vermelhas.
                 </p>
+                <p class="text-base text-gray-700 leading-relaxed mt-4 text-left">
+                    Nesta tese, o objetivo principal foi reconstruir a evolução metamórfica de um paragnaisse migmatizado da Bacutia, conectando texturas observadas em lâmina delgada, mineralogia e condições de pressão-temperatura. O trabalho mostra como a reação de desidratação da biotita favoreceu a formação de granada e feldspato potássico, com fusão parcial durante a trajetória prógrada, seguida de cristalização do melt na fase retrógrada. Em termos geológicos, a pesquisa ajuda a explicar a história térmica e tectônica da região de Guarapari dentro do contexto do Orógeno Araçuaí.
+                </p>
             </div>
 
             <div class="grid md:grid-cols-2 gap-8 items-center">
-                <div class="bg-gray-200 h-64 md:h-80 rounded-lg flex items-center justify-center relative shadow-xl overflow-hidden group">
-                     <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://placehold.co/600x400/5D4037/FFCCBC?text=Video+TCC');"></div>
-                     <div class="z-10 text-center">
-                        <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg cursor-pointer hover:scale-110 transition">
-                            <span class="text-white text-2xl">▶</span>
-                        </div>
-                        <p class="text-white font-bold">Apresentação do Pablo</p>
+                <div class="bg-white p-4 rounded-xl shadow-xl border border-gray-200">
+                    <h3 class="text-xl font-bold text-[#5D4037] mb-3">Vídeo da apresentação</h3>
+                    <div class="relative w-full overflow-hidden rounded-lg" style="padding-top: 56.25%;">
+                        <iframe
+                            class="absolute top-0 left-0 w-full h-full"
+                            src="https://drive.google.com/file/d/1EQX99wclcQy_10unqbkrfTINQu24w8AN/preview"
+                            title="Apresentação do TCC - Pablo Salvato"
+                            allow="autoplay"
+                            loading="lazy">
+                        </iframe>
                     </div>
+                    <p class="text-sm text-gray-600 mt-3">Se o vídeo não carregar automaticamente, abra o link no Google Drive.</p>
                 </div>
                 <div class="bg-white p-6 rounded-xl shadow-md">
                     <h3 class="text-2xl font-bold text-[#5D4037] mb-4">Como as rochas mudaram?</h3>
@@ -156,7 +163,7 @@
                     </div>
                 </div>
                 <div class="bg-[#EFEBE9] p-4 rounded-xl shadow-lg border-2 border-[#8D6E63] flex flex-col h-[600px]">
-                    <h4 class="text-lg font-bold text-[#5D4037] mb-4">🧪 Chat de Pesquisa IA</h4>
+                    <h4 class="text-lg font-bold text-[#5D4037] mb-4">Chat de Pesquisa IA</h4>
                     <div id="academic-chat-output" class="flex-grow overflow-y-auto bg-white p-3 rounded-lg border flex flex-col gap-3 text-sm mb-4">
                         <div class="ai-msg chat-message">Dúvidas técnicas sobre o TCC? Pergunte aqui.</div>
                     </div>
@@ -171,13 +178,13 @@
         <section id="view-kids" class="hidden fade-in space-y-12">
             <div class="grid lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-xl border-4 border-[#8D6E63]">
-                    <h2 class="text-2xl font-bold text-center mb-6">Laboratório de Rochas 🌋</h2>
+                    <h2 class="text-2xl font-bold text-center mb-6">Laboratório de Rochas</h2>
                     <div class="grid md:grid-cols-2 gap-8">
                         <div class="space-y-6">
-                            <label class="block font-bold">🔥 Temperatura</label>
+                            <label class="block font-bold">Temperatura</label>
                             <input type="range" id="tempSlider" min="1" max="100" value="10" class="w-full accent-red-600" oninput="updateRock()">
                             <p class="text-sm text-gray-700">Escala aproximada: <span id="tempValue" class="font-bold">260</span> °C</p>
-                            <label class="block font-bold">⛰️ Pressão</label>
+                            <label class="block font-bold">Pressão</label>
                             <input type="range" id="pressSlider" min="1" max="100" value="10" class="w-full accent-stone-700" oninput="updateRock()">
                             <p class="text-sm text-gray-700">Escala aproximada: <span id="pressValue" class="font-bold">1.7</span> kbar</p>
                             <div class="grid grid-cols-2 gap-2">
@@ -208,15 +215,15 @@
                 </div>
                 <div class="bg-[#FFF3E0] p-4 rounded-2xl shadow-xl border-4 border-[#FFAB91] flex flex-col h-[600px]">
                     <div class="text-center mb-4">
-                        <div class="w-16 h-16 bg-[#B71C1C] rounded-full mx-auto flex items-center justify-center text-3xl">👵💎</div>
-                        <h4 class="font-bold text-[#BF360C] mt-2">Dona Granada ✨</h4>
+                        <div class="w-16 h-16 bg-[#B71C1C] rounded-full mx-auto flex items-center justify-center text-3xl text-white">DG</div>
+                        <h4 class="font-bold text-[#BF360C] mt-2">Dona Granada</h4>
                     </div>
                     <div id="kids-chat-output" class="flex-grow overflow-y-auto bg-white p-3 rounded-xl flex flex-col gap-3 mb-4 font-comic text-sm">
                         <div class="ai-msg chat-message">Olá! Sou a Dona Granada. Nasci no calor da terra! Pergunte qualquer coisa!</div>
                     </div>
                     <div class="flex gap-2">
                         <input type="text" id="kids-chat-input" placeholder="Diz olá!" class="flex-grow p-3 rounded-full border-2 border-[#FFAB91] focus:outline-none font-comic" onkeypress="handleEnter(event, 'kids')">
-                        <button onclick="askGemini('kids')" class="bg-[#BF360C] text-white w-12 h-12 rounded-full font-bold shadow-lg">✨</button>
+                        <button onclick="askGemini('kids')" class="bg-[#BF360C] text-white w-12 h-12 rounded-full font-bold shadow-lg">OK</button>
                     </div>
                 </div>
             </div>
