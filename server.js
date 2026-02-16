@@ -27,6 +27,36 @@ Exemplo de fala: "No meu tempo, aqui era tudo lava! 🔥 Eu nasci num aperto dan
 ${TCC_CONTEXT}`,
 };
 
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '*')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+
+function applyCors(req, res) {
+  const origin = req.headers.origin;
+  const allowAny = allowedOrigins.includes('*');
+
+  if (allowAny) {
+    res.header('Access-Control-Allow-Origin', '*');
+  } else if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+  }
+
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+}
+
+app.use((req, res, next) => {
+  applyCors(req, res);
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
+  return next();
+});
+
 function mapGeminiError(status) {
   if (status === 401) {
     return { status: 401, error: 'Falha de autenticação com o provedor de IA (401). Verifique GEMINI_API_KEY.' };
@@ -38,7 +68,7 @@ function mapGeminiError(status) {
     return { status: 429, error: 'Limite de requisições da IA atingido (429). Aguarde e tente novamente.' };
   }
   if (status === 405) {
-    return { status: 502, error: 'O provedor de IA rejeitou o método/endpoint (405). A integração tentou endpoints alternativos automaticamente.' };
+    return { status: 502, error: 'O provedor de IA rejeitou método/endpoint (405). O servidor tentou endpoints alternativos automaticamente.' };
   }
   if (status >= 500) {
     return { status: 502, error: `Falha temporária no provedor de IA (${status}).` };
@@ -104,7 +134,7 @@ async function requestGemini({ apiKey, mode, text }) {
   return lastFailure;
 }
 
-app.post('/api/chat', async (req, res) => {
+async function handleChat(req, res) {
   const { mode, text } = req.body ?? {};
 
   if (!mode || !text) {
@@ -140,6 +170,17 @@ app.post('/api/chat', async (req, res) => {
       metadata: { details: error.message },
     });
   }
+}
+
+app.post('/api/chat', handleChat);
+app.post('/chat', handleChat);
+
+app.all('/api/chat', (req, res) => {
+  return res.status(405).json({ error: 'Método não permitido. Use POST em /api/chat.' });
+});
+
+app.all('/chat', (req, res) => {
+  return res.status(405).json({ error: 'Método não permitido. Use POST em /chat.' });
 });
 
 app.listen(PORT, () => {
