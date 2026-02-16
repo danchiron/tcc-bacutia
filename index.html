@@ -191,6 +191,40 @@
                             <li>Pico térmico com início de fusão parcial por quebra de biotita em presença de quartzo/plagioclásio.</li>
                             <li>Geração de líquidos anatéticos e cristalização de granada peritética (Grt2).</li>
                         </ul>
+                        <div class="mt-5 rounded-xl p-4 bg-slate-900/40 border border-indigo-100/10">
+                            <p class="text-sm text-indigo-100/80">Reação principal observada</p>
+                            <p class="text-lg md:text-xl mt-1 font-semibold text-amber-200">Bt + Pl + Qz &plusmn; Sil &rarr; Grt + Kfs + Melt</p>
+                            <p class="text-sm mt-2 text-indigo-100/80">Estruturas migmatíticas descritas: estromática (PS01), schollen (PS02), schlieren e ptigmática.</p>
+                        </div>
+                    </div>
+                    <div class="glass p-6 overflow-x-auto">
+                        <h4 class="text-xl mb-3"><i class="fa-solid fa-table text-rose-300 mr-2"></i>Comparativo petrográfico: Grt1 vs Grt2</h4>
+                        <table class="w-full text-sm border-collapse">
+                            <thead>
+                                <tr class="text-left bg-slate-900/50">
+                                    <th class="p-3 border border-indigo-100/10">Critério</th>
+                                    <th class="p-3 border border-indigo-100/10">Grt1</th>
+                                    <th class="p-3 border border-indigo-100/10">Grt2</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-indigo-100/90">
+                                <tr>
+                                    <td class="p-3 border border-indigo-100/10 font-semibold">Textura</td>
+                                    <td class="p-3 border border-indigo-100/10">Poiquiloblástica, rica em inclusões de quartzo/biotita.</td>
+                                    <td class="p-3 border border-indigo-100/10">Idioblástica, cristais mais límpidos e com poucas inclusões.</td>
+                                </tr>
+                                <tr class="bg-slate-900/30">
+                                    <td class="p-3 border border-indigo-100/10 font-semibold">Domínio</td>
+                                    <td class="p-3 border border-indigo-100/10">Associada ao paleossoma/melanossoma.</td>
+                                    <td class="p-3 border border-indigo-100/10">Associada ao leucossoma anatético.</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border border-indigo-100/10 font-semibold">Significado</td>
+                                    <td class="p-3 border border-indigo-100/10">Registra metamorfismo prógrado antes do pico térmico.</td>
+                                    <td class="p-3 border border-indigo-100/10">Registra cristalização do fundido durante/apos anatexia.</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 <aside class="glass p-5 flex flex-col h-[560px]">
@@ -212,6 +246,8 @@
                     <div class="space-y-5">
                         <label class="block font-semibold text-lg">Temperatura: <span id="valTemp">20</span>°C</label>
                         <input type="range" id="tempSlider" min="20" max="900" value="20" class="w-full accent-rose-500" oninput="atualizarSimulacao()">
+                        <label class="block font-semibold text-lg">Pressão: <span id="valPress">5.0</span> kbar</label>
+                        <input type="range" id="pressSlider" min="5" max="7" value="5" step="0.1" class="w-full accent-indigo-400" oninput="atualizarSimulacao()">
                         <div class="rounded-xl p-4 bg-slate-900/40 border border-indigo-100/10 min-h-[110px]">
                             <h4 id="rock-status-title" class="text-xl">Sedimento inicial</h4>
                             <p id="rock-status-desc" class="text-indigo-100/85 text-sm mt-1">Aperte o calor para iniciar o metamorfismo.</p>
@@ -269,20 +305,34 @@
 
         function atualizarSimulacao() {
             const temp = parseInt(document.getElementById('tempSlider').value, 10);
+            const pressure = parseFloat(document.getElementById('pressSlider').value);
             document.getElementById('valTemp').innerText = temp;
+            document.getElementById('valPress').innerText = pressure.toFixed(1);
             const title = document.getElementById('rock-status-title');
             const desc = document.getElementById('rock-status-desc');
 
             ctx.clearRect(0, 0, 280, 280);
 
-            if (temp < 200) {
+            if (temp < 400) {
                 ctx.fillStyle = '#6b4c32';
-                title.innerText = 'Lama de bacia';
-                desc.innerText = 'Sedimento ainda pouco consolidado em ambiente tectônico ativo.';
+                title.innerText = 'Lama / Sedimento';
+                desc.innerText = `Baixo grau térmico (${temp}°C, ${pressure.toFixed(1)} kbar): material ainda não metamorfizado.`;
+            } else if (temp < 700) {
+                ctx.fillStyle = '#5f5ca7';
+                title.innerText = 'Xisto';
+                desc.innerText = `Faixa de 400-700°C: início da foliação e crescimento mineral sem fusão.`;
+                ctx.strokeStyle = '#dbe1ff';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 6; i += 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(50, 85 + i * 20);
+                    ctx.lineTo(230, 85 + i * 20);
+                    ctx.stroke();
+                }
             } else if (temp < 750) {
                 ctx.fillStyle = '#7c8cff';
-                title.innerText = 'Gnaisse em evolução';
-                desc.innerText = 'A rocha está sólida e foliada, com crescimento mineral progressivo.';
+                title.innerText = 'Gnaisse';
+                desc.innerText = 'Faixa de 700-750°C: bandamento gnáissico bem desenvolvido, pré-anatexia.';
                 ctx.strokeStyle = '#dbe1ff';
                 ctx.lineWidth = 2;
                 for (let i = 0; i < 10; i += 1) {
@@ -294,7 +344,8 @@
             } else {
                 ctx.fillStyle = '#ff8855';
                 title.innerText = 'Migmatito em anatexia';
-                desc.innerText = 'Faixa de 750°C+: fusão parcial e cristalização de granadas peritéticas (Grt2).';
+                const anatexia = temp <= 850 ? 'janela principal de anatexia (750-850°C)' : 'supera a janela principal de anatexia';
+                desc.innerText = `Temperatura em ${anatexia}: fusão parcial e aparecimento de granadas peritéticas (Grt2).`;
                 ctx.shadowBlur = 12;
                 ctx.shadowColor = '#ffd27a';
                 for (let i = 0; i < 8; i += 1) {
