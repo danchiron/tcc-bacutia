@@ -391,7 +391,7 @@ Responda de forma curtinha, no máximo 3 frases.`;
             try {
                 const userText = mode === 'kids' ? buildKidsInstruction(text) : text;
                 const payload = {
-                    systemInstruction: { parts: [{ text: SYSTEM_PROMPTS[mode] }] },
+                    system_instruction: { parts: [{ text: SYSTEM_PROMPTS[mode] }] },
                     contents: [{ role: 'user', parts: [{ text: userText }] }],
                     generationConfig: mode === 'kids'
                         ? { maxOutputTokens: 180, temperature: 0.8 }
@@ -409,15 +409,17 @@ Responda de forma curtinha, no máximo 3 frases.`;
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+
                     if (response.ok) {
-                        lastError = null;
+                        requestError = null;
                         break;
                     }
-                    lastError = new Error(`Gemini retornou status ${response.status}`);
+
+                    requestError = new Error(`Gemini retornou status ${response.status}`);
                 }
 
                 if (!response?.ok) {
-                    throw lastError || new Error('Falha ao conectar com o Gemini.');
+                    throw requestError || new Error('Falha ao conectar com o Gemini.');
                 }
 
                 const data = await response.json();
@@ -442,6 +444,8 @@ Responda de forma curtinha, no máximo 3 frases.`;
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
                 aiMsg.innerText = `Não consegui responder agora (${error.message}). Tente novamente em instantes.`;
                 outputEl.appendChild(aiMsg);
+            } finally {
+                loading.remove();
                 outputEl.scrollTop = outputEl.scrollHeight;
                 console.error(error);
             }
