@@ -264,6 +264,13 @@ Escolha um modo e pergunte qualquer coisa, meu pedregulho!</div>
                             <option value="quiz">Múltipla escolha (A/B/C + resposta correta)</option>
                         </select>
                     </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                        <select id="kids-response-style" class="p-2 rounded-xl border-2 border-[#FFAB91] font-comic text-[#5D4037] bg-white">
+                            <option value="short">Resposta curtinha</option>
+                            <option value="quiz">Múltipla escolha</option>
+                        </select>
+                        <p class="text-xs text-[#6D4C41] font-comic px-1 self-center">Escolha o estilo antes de enviar a pergunta.</p>
+                    </div>
                     <div class="flex gap-2">
                         <input type="text" id="kids-chat-input" placeholder="Diz olá!" class="flex-grow p-3 rounded-full border-2 border-[#FFAB91] focus:outline-none font-comic" onkeypress="handleEnter(event, 'kids')">
                         <button onclick="askGemini('kids')" class="bg-[#BF360C] text-white w-12 h-12 rounded-full font-bold shadow-lg">OK</button>
@@ -336,12 +343,11 @@ Quem é você: Uma rocha mineral vermelha, muito dura e brilhante, que tem 600 m
 Personalidade: Uma avó rabugenta (porque odeia frio), mas muito carinhosa e orgulhosa de ser "nascida no fogo". Você adora se gabar de como aguentou 800 graus sem derreter totalmente.
 Missão: Explicar geologia para crianças de 8 anos de forma simples e divertida.
 Regras de Fala:
-
-Use emojis (🌋, 💎, 🔥, 👵).
-
-Chame o usuário de "meu pedregulho", "pequeno geólogo" ou "cascalho".
-
-Nunca use termos técnicos difíceis sem explicar (ex: se falar "metamorfismo", diga "a grande transformação").
+- Use emojis (🌋, 💎, 🔥, 👵).
+- Chame o usuário de "meu pedregulho", "pequeno geólogo" ou "cascalho".
+- Nunca use termos técnicos difíceis sem explicar (ex: se falar "metamorfismo", diga "a grande transformação").
+- Dê prioridade a respostas curtas: no máximo 3 frases.
+- Se o pedido for em modo quiz, responda com 1 pergunta + 3 alternativas (A, B, C) e indique a resposta correta no final.
 
 Prefira vocabulário infantil, frases curtas e exemplos do cotidiano da criança.
 
@@ -352,80 +358,16 @@ Exemplo de fala: "No meu tempo, aqui era tudo lava! 🔥 Eu nasci num aperto dan
 ${TCC_CONTEXT}`
         };
 
-        function getFriendlyErrorCode(status, message) {
-            const normalizedMessage = (message || '').toLowerCase();
+        function buildKidsInstruction(text) {
+            const style = document.getElementById('kids-response-style')?.value || 'short';
+            if (style === 'quiz') {
+                return `${text}
 
-            if (status === 401 || status === 403 || normalizedMessage.includes('api key')) {
-                return 'INVALID_API_KEY';
+Responda obrigatoriamente no formato de múltipla escolha (A, B, C), com no máximo 1 linha por alternativa, e no fim escreva: "Resposta certa: X".`;
             }
+            return `${text}
 
-            if (status === 429 || normalizedMessage.includes('quota') || normalizedMessage.includes('resource exhausted')) {
-                return 'QUOTA_EXCEEDED';
-            }
-
-            if (status === 400 || status === 404) {
-                return 'MODEL_UNAVAILABLE';
-            }
-
-            return 'GENERIC_ERROR';
-        }
-
-        function getFriendlyErrorMessage(errorCode) {
-            const map = {
-                MODEL_UNAVAILABLE: 'O modelo de IA está indisponível no momento. Tente novamente em instantes.',
-                QUOTA_EXCEEDED: 'A cota de uso da IA foi atingida agora. Tente novamente mais tarde.',
-                INVALID_API_KEY: 'A chave da API está inválida ou sem permissão no momento.',
-                GENERIC_ERROR: 'Não consegui responder agora. Tente novamente em instantes.'
-            };
-            return map[errorCode] || map.GENERIC_ERROR;
-        }
-
-        async function requestGeminiWithModel(model, payload) {
-            const response = await fetch(`${GEMINI_API_BASE_URL}/models/${model}:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const rawBody = await response.text();
-            let parsedBody = null;
-
-            if (rawBody) {
-                try {
-                    parsedBody = JSON.parse(rawBody);
-                } catch {
-                    parsedBody = null;
-                }
-            }
-
-            if (!response.ok) {
-                const errorMessage = parsedBody?.error?.message || rawBody || `Gemini retornou status ${response.status}`;
-                const error = new Error(errorMessage);
-                error.status = response.status;
-                error.model = model;
-                error.rawMessage = errorMessage;
-                throw error;
-            }
-
-            const answer = parsedBody?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (!answer) {
-                const error = new Error('Resposta vazia da API Gemini.');
-                error.status = 502;
-                error.model = model;
-                error.rawMessage = 'Resposta vazia da API Gemini.';
-                throw error;
-            }
-
-            return { answer, model };
-        function getKidsPromptExtraInstruction() {
-            const modeSelect = document.getElementById('kids-response-style');
-            if (!modeSelect) return '';
-
-            if (modeSelect.value === 'quiz') {
-                return 'Modo múltipla escolha: gere 3 alternativas simples (A, B, C), marque a correta e explique em 1 frase.';
-            }
-
-            return 'Modo curto: responda em no máximo 3 frases curtas.';
+Responda de forma curtinha, no máximo 3 frases.`;
         }
 
         async function askGemini(mode) {
@@ -459,51 +401,39 @@ ${TCC_CONTEXT}`
             let lastError = null;
 
             try {
-                for (const model of modelsToTry) {
-                    try {
-                        const result = await requestGeminiWithModel(model, payload);
-                        if (outputEl.contains(loading)) {
-                            outputEl.removeChild(loading);
-                        }
+                const userText = mode === 'kids' ? buildKidsInstruction(text) : text;
+                const payload = {
+                    systemInstruction: { parts: [{ text: SYSTEM_PROMPTS[mode] }] },
+                    contents: [{ role: 'user', parts: [{ text: userText }] }],
+                    generationConfig: mode === 'kids'
+                        ? { maxOutputTokens: 180, temperature: 0.8 }
+                        : { maxOutputTokens: 512, temperature: 0.4 }
+                };
 
-                        const aiMsg = document.createElement('div');
-                        aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
-                        aiMsg.innerText = result.answer;
-                        outputEl.appendChild(aiMsg);
-                        outputEl.scrollTop = outputEl.scrollHeight;
-                        return;
-                    } catch (error) {
-                        const status = error.status || 0;
-                        const snippet = (error.rawMessage || error.message || '').slice(0, 160);
-                        console.error('[Gemini] request_failed', { status, model, snippet });
+                const endpoints = [
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`
+                ];
 
-                        lastError = error;
-                        const shouldTryFallback = (status === 400 || status === 404) && model === PRIMARY_MODEL;
-                        if (!shouldTryFallback) {
-                            break;
-                        }
+                let response;
+                let lastError;
+                for (const endpoint of endpoints) {
+                    response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) {
+                        lastError = null;
+                        break;
                     }
+                    lastError = new Error(`Gemini retornou status ${response.status}`);
                 }
 
-                throw lastError || new Error('Falha desconhecida ao consultar Gemini.');
-            } catch (error) {
-                if (outputEl.contains(loading)) {
-                    outputEl.removeChild(loading);
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        system_instruction: { parts: [{ text: systemPrompt }] },
-                        contents: [{ role: 'user', parts: [{ text }] }]
-                        mode,
-                        text
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => null);
-                    throw new Error(errorData?.error || `Servidor retornou status ${response.status}`);
+                if (!response?.ok) {
+                    throw lastError || new Error('Falha ao conectar com o Gemini.');
                 }
+
 
                 const data = await response.json();
                 const answer = data?.answer;
