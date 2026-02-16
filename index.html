@@ -3,286 +3,406 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upgrade: A Vida Secreta das Rochas - TCC Pablo Salvato</title>
+    <title>TCC Pablo Salvato | Bacutia Metamórfica</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Roboto', sans-serif; background-color: #EFEBE9; color: #3E2723; scroll-behavior: smooth; }
-        h1, h2, h3, h4 { font-family: 'Merriweather', serif; }
-        
-        /* Estilos da Lupa Virtual */
+        :root {
+            --bg: #0b1020;
+            --card: rgba(16, 25, 49, 0.75);
+            --card-soft: rgba(30, 42, 73, 0.55);
+            --line: rgba(126, 158, 255, 0.25);
+            --text: #e9ecff;
+            --muted: #b3bce6;
+            --primary: #7c8cff;
+            --accent: #ff7e9f;
+            --warm: #ffb067;
+        }
+
+        * { box-sizing: border-box; }
+        html, body { margin: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 20% 10%, #27356e 0%, transparent 40%),
+                radial-gradient(circle at 80% 0%, #5b2c63 0%, transparent 35%),
+                radial-gradient(circle at 50% 100%, #2e4b72 0%, transparent 45%),
+                var(--bg);
+            scroll-behavior: smooth;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
+
+        .glass {
+            backdrop-filter: blur(12px);
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 1rem;
+            box-shadow: 0 20px 35px rgba(5, 8, 20, 0.35);
+        }
+
+        .hero-grid {
+            background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+
+        .tab-btn {
+            border: 1px solid transparent;
+            transition: all .25s ease;
+        }
+
+        .active-tab {
+            background: linear-gradient(90deg, rgba(124,140,255,0.3), rgba(255,126,159,0.25));
+            border-color: rgba(169,182,255,0.45);
+            color: #ffffff;
+        }
+
+        .inactive-tab {
+            background: rgba(10, 17, 35, 0.55);
+            border-color: rgba(145, 157, 194, 0.18);
+            color: var(--muted);
+        }
+
+        .inactive-tab:hover {
+            color: #fff;
+            border-color: rgba(169,182,255,0.45);
+        }
+
+        .metric-pill {
+            background: linear-gradient(120deg, rgba(124,140,255,.18), rgba(255,176,103,.18));
+            border: 1px solid rgba(177, 193, 255, .3);
+        }
+
+        .chart-container { position: relative; height: 300px; }
+
+        .chat-message { padding: .75rem; border-radius: .85rem; margin-bottom: .5rem; max-width: 85%; animation: fadeIn .3s ease; }
+        .user-msg { background: rgba(124,140,255,.28); margin-left: auto; }
+        .ai-msg { background: rgba(255,126,159,.2); border-left: 3px solid var(--accent); }
+
+        .typing-indicator::after { content: '...'; animation: ellipsis 1.5s infinite; }
+
         .slider-container {
             position: relative;
             width: 100%;
-            max-width: 600px;
-            height: 400px;
+            max-width: 640px;
+            height: 380px;
             overflow: hidden;
-            margin: 20px auto;
-            border: 4px solid #5D4037;
-            border-radius: 12px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        .img-fundo {
-            background-image: url('https://placehold.co/600x400/5D4037/FFCCBC?text=FOTO+DO+AFLORAMENTO+PS02'); /* Substituir pela foto real */
-            background-size: cover; background-position: center;
-            width: 100%; height: 100%; position: absolute;
-        }
-        .img-frente {
-            background-image: url('https://placehold.co/600x400/B71C1C/FFFFFF?text=FOTOMICROGRAFIA+Grt1'); /* Substituir pela foto da lâmina */
-            background-size: cover; background-position: center;
-            width: 50%; height: 100%; position: absolute;
-            border-right: 4px solid white; z-index: 2;
-        }
-        .slider-control {
-            position: absolute; width: 100%; height: 100%;
-            opacity: 0; cursor: ew-resize; z-index: 10; margin: 0;
+            margin: 0 auto;
+            border-radius: 1rem;
+            border: 1px solid rgba(145, 157, 194, .3);
+            box-shadow: 0 18px 35px rgba(0,0,0,.3);
         }
 
-        /* Gráficos e Chat */
-        .chart-container { position: relative; width: 100%; height: 300px; }
-        .chat-message { padding: 10px; border-radius: 10px; margin-bottom: 8px; max-width: 85%; animation: fadeIn 0.3s ease; }
-        .user-msg { background-color: #D7CCC8; align-self: flex-end; margin-left: auto; }
-        .ai-msg { background-color: #FFCCBC; align-self: flex-start; border-left: 4px solid #B71C1C; }
-        .active-tab { background-color: #5D4037; color: white; border-bottom: 4px solid #B71C1C; }
-        .inactive-tab { background-color: white; color: #5D4037; }
-        .typing-indicator::after { content: '...'; animation: ellipsis 1.5s infinite; }
+        .img-fundo,
+        .img-frente {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .img-fundo {
+            background-image: linear-gradient(45deg, rgba(9, 15, 31, .5), rgba(9, 15, 31, .2)), url('https://placehold.co/1200x700/4b5d88/f8d9ba?text=Afloramento+PS02+-+Bacutia');
+        }
+
+        .img-frente {
+            width: 50%;
+            border-right: 3px solid #fff;
+            background-image: linear-gradient(45deg, rgba(132, 37, 60, .3), rgba(54, 10, 41, .2)), url('https://placehold.co/1200x700/84253c/f9f2f4?text=Fotomicrografia+Grt1+e+Grt2');
+            z-index: 2;
+        }
+
+        .slider-control { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; z-index: 10; margin: 0; }
+
         @keyframes ellipsis { 0% { content: '.'; } 33% { content: '..'; } 66% { content: '...'; } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
-
-    <header class="bg-[#5D4037] text-white py-12 shadow-lg">
-        <div class="container mx-auto px-4 text-center">
-            <h1 class="text-3xl md:text-5xl font-bold mb-2 text-[#FFCCBC]">
-                <i class="fa-solid fa-hammer-metaphor mr-3"></i>O Segredo da Bacutia
-            </h1>
-            <p class="text-lg md:text-xl font-light text-gray-200 uppercase tracking-widest">Upgrade: Ciência e Interatividade</p>
-            <div class="mt-6 flex flex-col md:flex-row justify-center items-center gap-4 opacity-90">
-                <p><i class="fa-solid fa-user-graduate mr-2"></i>Pablo Salvato</p>
-                <p><i class="fa-solid fa-chalkboard-user mr-2"></i>Prof.ª Dr.ª Marilane Melo</p>
+<body class="min-h-screen flex flex-col">
+    <header class="hero-grid border-b border-indigo-200/20">
+        <div class="max-w-6xl mx-auto px-4 py-14">
+            <div class="glass p-8 md:p-10">
+                <p class="uppercase tracking-[.25em] text-xs text-indigo-200 mb-3">Projeto Interativo do TCC</p>
+                <h1 class="text-3xl md:text-5xl font-bold leading-tight">A evolução metamórfica da <span class="text-rose-300">Praia da Bacutia</span></h1>
+                <p class="text-indigo-100/90 mt-4 text-base md:text-lg max-w-3xl">Uma versão mais moderna do estudo de <strong>Pablo Salvato</strong> sobre anatexia, trajetória P-T e geração de granadas peritéticas na Faixa Araçuaí.</p>
+                <div class="mt-8 grid sm:grid-cols-3 gap-3 text-sm">
+                    <div class="metric-pill rounded-xl p-3"><i class="fa-solid fa-temperature-full mr-2 text-orange-300"></i> Pico térmico: <strong>750–850°C</strong></div>
+                    <div class="metric-pill rounded-xl p-3"><i class="fa-solid fa-gem mr-2 text-rose-300"></i> Grt1 e Grt2 como registro-chave</div>
+                    <div class="metric-pill rounded-xl p-3"><i class="fa-solid fa-earth-americas mr-2 text-cyan-300"></i> Contexto Gondwana e colisão Brasil-África</div>
+                </div>
             </div>
         </div>
     </header>
 
-    <nav class="sticky top-0 z-50 bg-[#EFEBE9] shadow-md">
-        <div class="container mx-auto px-4">
-            <div class="flex flex-wrap justify-center space-x-1 py-3">
-                <button onclick="switchTab('general')" id="tab-general" class="px-6 py-3 rounded-t-lg font-bold active-tab"><i class="fa-solid fa-earth-americas mr-2"></i>Geral</button>
-                <button onclick="switchTab('academic')" id="tab-academic" class="px-6 py-3 rounded-t-lg font-bold inactive-tab"><i class="fa-solid fa-microscope mr-2"></i>Acadêmico</button>
-                <button onclick="switchTab('kids')" id="tab-kids" class="px-6 py-3 rounded-t-lg font-bold inactive-tab"><i class="fa-solid fa-flask-vial mr-2"></i>Laboratório</button>
-            </div>
+    <nav class="sticky top-0 z-50 backdrop-blur-lg bg-slate-900/70 border-b border-indigo-100/10">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-center gap-2 flex-wrap">
+            <button onclick="switchTab('general')" id="tab-general" class="tab-btn active-tab px-5 py-2 rounded-full font-semibold"><i class="fa-solid fa-compass mr-2"></i>Visão geral</button>
+            <button onclick="switchTab('academic')" id="tab-academic" class="tab-btn inactive-tab px-5 py-2 rounded-full font-semibold"><i class="fa-solid fa-microscope mr-2"></i>Análise técnica</button>
+            <button onclick="switchTab('kids')" id="tab-kids" class="tab-btn inactive-tab px-5 py-2 rounded-full font-semibold"><i class="fa-solid fa-flask mr-2"></i>Laboratório</button>
         </div>
     </nav>
 
-    <main class="flex-grow container mx-auto px-4 py-8">
-        
-        <section id="view-general" class="fade-in space-y-12">
-            <div class="max-w-4xl mx-auto text-center bg-white p-8 rounded-xl shadow-md border-t-4 border-[#8D6E63]">
-                <h2 class="text-3xl font-bold text-[#5D4037] mb-4">Onde você está pisando?</h2>
-                <p class="text-lg text-gray-700">A Praia da Bacutia é a cicatriz da colisão que uniu a América e a África há 580 milhões de anos. Você está caminhando sobre a raiz de um Himalaia extinto.</p>
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-10 space-y-10">
+        <section id="view-general" class="space-y-8">
+            <div class="glass p-8 text-center">
+                <h2 class="text-2xl md:text-4xl mb-4">Você está sobre a raiz de um antigo orógeno</h2>
+                <p class="text-indigo-100/90 max-w-4xl mx-auto">A Bacutia preserva sinais da colisão continental que ajudou a formar Gondwana. O TCC demonstra como o metamorfismo de alto grau levou à fusão parcial e ao crescimento de granadas em diferentes gerações.</p>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-8">
-                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-[#B71C1C]">
-                    <h3 class="text-xl font-bold mb-4 text-[#5D4037]"><i class="fa-solid fa-map-location-dot mr-2"></i>Contexto Gondwana</h3>
-                    <div class="h-64 bg-gray-200 rounded-lg flex items-center justify-center relative overflow-hidden">
-                        <div class="absolute inset-0 opacity-40 bg-cover bg-center" style="background-image: url('https://placehold.co/600x400/8D6E63/FFFFFF?text=Mapa+Gondwana');"></div>
-                        <div class="z-10 p-4 text-center">
-                            <p class="text-sm font-bold bg-white/80 p-2 rounded">Brasil e África colados: Aqui nasceram as rochas do Pablo.</p>
-                        </div>
+            <div class="grid lg:grid-cols-2 gap-6">
+                <article class="glass p-6">
+                    <h3 class="text-2xl mb-4"><i class="fa-solid fa-map-location-dot text-cyan-300 mr-2"></i>Cenário tectônico</h3>
+                    <p class="text-indigo-100/90 mb-4">A região representa uma zona profunda da crosta durante a evolução da Faixa Araçuaí. O registro petrográfico indica soterramento, aquecimento e descompressão associados a eventos colisionais.</p>
+                    <div class="rounded-xl p-4 bg-slate-900/40 border border-indigo-100/10 text-sm text-indigo-100/80">
+                        <strong class="text-indigo-100">Insight do TCC:</strong> granadas Grt1 preservam inclusões e evidências pré-pico, enquanto Grt2 registra condições próximas à anatexia.
                     </div>
-                    <p class="mt-4 text-sm text-gray-600">A monazita das nossas areias vem da erosão destes gnaisses que o Pablo estudou.</p>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-[#5D4037]">
-                    <h3 class="text-xl font-bold mb-4 text-[#5D4037]"><i class="fa-solid fa-gem mr-2"></i>Saiba Mais</h3>
-                    <ul class="space-y-4 text-blue-800 underline">
-                        <li><a href="#" target="_blank">Modelo 3D: Cristal de Granada (Grt2)</a></li>
-                        <li><a href="#" target="_blank">Vídeo: Areias Monazíticas de Guarapari</a></li>
-                        <li><a href="#" target="_blank">Geologia da Província Mantiqueira</a></li>
-                    </ul>
-                </div>
+                </article>
+
+                <article class="glass p-6">
+                    <h3 class="text-2xl mb-4"><i class="fa-solid fa-maximize text-rose-300 mr-2"></i>Lupa comparativa</h3>
+                    <div class="slider-container">
+                        <div class="img-fundo"></div>
+                        <div id="imgFront" class="img-frente"></div>
+                        <input type="range" id="sliderControl" class="slider-control" min="0" max="100" value="50">
+                    </div>
+                </article>
             </div>
         </section>
 
-        <section id="view-academic" class="hidden fade-in space-y-12">
-            <div class="bg-white p-8 rounded-xl shadow-md">
-                <h3 class="text-2xl font-bold text-[#5D4037] mb-6"><i class="fa-solid fa-magnifying-glass-plus mr-2"></i>Lupa Virtual: Do Campo ao Microscópio</h3>
-                <p class="mb-6 text-gray-600">Arraste a barra para comparar a textura da rocha no ponto PS02 (Esquerda) com a fotomicrografia da Granada 1 (Direita).</p>
-                
-                <div class="slider-container">
-                    <div class="img-fundo"></div>
-                    <div class="img-frente" id="imgOverlay"></div>
-                    <input type="range" min="0" max="100" value="50" class="slider-control" oninput="document.getElementById('imgOverlay').style.width = this.value + '%'">
-                </div>
-                <p class="text-center text-xs text-gray-500 mt-2 italic">A Granada 1 (Poiquiloblástica) revela o passado da rocha através de suas inclusões.</p>
-            </div>
-
-            <div class="grid lg:grid-cols-3 gap-8">
+        <section id="view-academic" class="hidden">
+            <div class="grid lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 space-y-6">
-                    <div class="bg-white p-6 rounded-xl shadow-md border-l-8 border-[#B71C1C]">
-                        <h4 class="font-bold text-[#5D4037] mb-2">Pico Metamórfico: 750-850°C</h4>
-                        <p class="text-sm text-gray-700">A anatexia (fusão) por desidratação da biotita é o motor da criação das granadas peritéticas descritas no TCC.</p>
+                    <div class="glass p-6">
+                        <h3 class="text-2xl mb-3"><i class="fa-solid fa-chart-line text-indigo-300 mr-2"></i>Dados-chave do trabalho</h3>
+                        <p class="text-indigo-100/90 mb-4">As visualizações resumem a progressão metamórfica com destaque para o aumento de granada no pico e posterior retrometamorfismo.</p>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-slate-950/30 rounded-xl p-4 border border-indigo-100/10"><div class="chart-container"><canvas id="mineralChart"></canvas></div></div>
+                            <div class="bg-slate-950/30 rounded-xl p-4 border border-indigo-100/10"><div class="chart-container"><canvas id="ptPathChart"></canvas></div></div>
+                        </div>
                     </div>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="bg-white p-4 rounded-xl shadow-md h-[300px]"><canvas id="mineralChart"></canvas></div>
-                        <div class="bg-white p-4 rounded-xl shadow-md h-[300px]"><canvas id="ptPathChart"></canvas></div>
+                    <div class="glass p-6">
+                        <h4 class="text-xl mb-3"><i class="fa-solid fa-fire text-orange-300 mr-2"></i>Interpretação metamórfica</h4>
+                        <ul class="list-disc pl-5 text-indigo-100/90 space-y-2">
+                            <li>Protólito sedimentar submetido a soterramento progressivo.</li>
+                            <li>Pico térmico com início de fusão parcial por quebra de biotita em presença de quartzo/plagioclásio.</li>
+                            <li>Geração de líquidos anatéticos e cristalização de granada peritética (Grt2).</li>
+                        </ul>
                     </div>
                 </div>
-                <div class="bg-[#EFEBE9] p-4 rounded-xl shadow-lg border-2 border-[#8D6E63] flex flex-col h-[500px]">
-                    <h4 class="font-bold text-[#5D4037] mb-4 text-center">IA: Consultoria Técnica</h4>
-                    <div id="academic-chat-output" class="flex-grow overflow-y-auto bg-white p-3 rounded-lg flex flex-col gap-3 text-xs mb-4"></div>
-                    <div class="flex gap-2">
-                        <input type="text" id="academic-chat-input" placeholder="Dúvida técnica..." class="flex-grow p-2 rounded text-xs border" onkeypress="handleEnter(event, 'academic')">
-                        <button onclick="askGemini('academic')" class="bg-[#5D4037] text-white px-3 rounded">➤</button>
+                <aside class="glass p-5 flex flex-col h-[560px]">
+                    <h4 class="text-xl mb-4 text-center">Assistente técnico do TCC</h4>
+                    <div id="academic-chat-output" class="flex-grow overflow-y-auto rounded-lg p-3 bg-slate-950/30 border border-indigo-100/10 text-sm"></div>
+                    <div class="mt-4 flex gap-2">
+                        <input id="academic-chat-input" type="text" placeholder="Pergunte sobre P-T, granada, anatexia..." class="flex-grow rounded-lg px-3 py-2 bg-slate-900/80 border border-indigo-200/20" onkeypress="handleEnter(event, 'academic')">
+                        <button onclick="askGemini('academic')" class="px-4 rounded-lg bg-indigo-500 hover:bg-indigo-400 transition"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
-                </div>
+                </aside>
             </div>
         </section>
 
-        <section id="view-kids" class="hidden fade-in space-y-12">
-            <div class="bg-white p-8 rounded-2xl shadow-xl border-4 border-[#8D6E63]">
-                <div class="text-center mb-8">
-                    <h2 class="text-3xl font-bold text-[#5D4037]">Fábrica de Rochas Calibrada 🌋</h2>
-                    <p class="text-gray-600">Simule a temperatura real do TCC para ver a fusão da biotita acontecer!</p>
-                </div>
-                <div class="grid md:grid-cols-2 gap-8">
-                    <div class="space-y-8 bg-[#F5F5F5] p-6 rounded-xl">
-                        <div>
-                            <label class="block font-bold text-[#B71C1C] mb-2">🔥 Temperatura: <span id="valTemp">20</span>°C</label>
-                            <input type="range" id="tempSlider" min="20" max="900" value="20" class="w-full accent-red-600" oninput="atualizarSimulacao()">
-                        </div>
-                        <div class="bg-white p-4 rounded-lg border-l-8 border-blue-500 shadow-sm min-h-[100px]">
-                            <h4 class="font-bold text-lg text-[#5D4037]" id="rock-status-title">Sedimento Inicial</h4>
-                            <p class="text-sm" id="rock-status-desc">Aperte o calor para enterrar a rocha.</p>
+        <section id="view-kids" class="hidden space-y-6">
+            <div class="glass p-8">
+                <h3 class="text-3xl mb-2 text-center">Laboratório da Dona Granada 🌋</h3>
+                <p class="text-center text-indigo-100/80 mb-8">Explore a mesma faixa de temperatura discutida no TCC e veja quando a rocha começa a fundir.</p>
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div class="space-y-5">
+                        <label class="block font-semibold text-lg">Temperatura: <span id="valTemp">20</span>°C</label>
+                        <input type="range" id="tempSlider" min="20" max="900" value="20" class="w-full accent-rose-500" oninput="atualizarSimulacao()">
+                        <div class="rounded-xl p-4 bg-slate-900/40 border border-indigo-100/10 min-h-[110px]">
+                            <h4 id="rock-status-title" class="text-xl">Sedimento inicial</h4>
+                            <p id="rock-status-desc" class="text-indigo-100/85 text-sm mt-1">Aperte o calor para iniciar o metamorfismo.</p>
                         </div>
                     </div>
-                    <div class="flex items-center justify-center">
-                        <canvas id="rockCanvas" width="280" height="280" class="rounded-full shadow-2xl border-8 border-gray-100 bg-gray-50"></canvas>
+                    <div class="flex justify-center">
+                        <canvas id="rockCanvas" width="280" height="280" class="rounded-full border border-indigo-100/20 bg-slate-900/40"></canvas>
                     </div>
                 </div>
             </div>
-            
-            <div class="max-w-md mx-auto bg-[#FFF3E0] p-6 rounded-2xl shadow-xl border-4 border-[#FFAB91] h-[500px] flex flex-col">
-                <h4 class="font-bold text-[#BF360C] text-center mb-4">Zap da Dona Granada ✨</h4>
-                <div id="kids-chat-output" class="flex-grow overflow-y-auto bg-white p-3 rounded-xl flex flex-col gap-3 mb-4 text-sm font-medium"></div>
-                <div class="flex gap-2">
-                    <input type="text" id="kids-chat-input" placeholder="Diz oi pra ela!" class="flex-grow p-3 rounded-full border-2 border-[#FFAB91]" onkeypress="handleEnter(event, 'kids')">
-                    <button onclick="askGemini('kids')" class="bg-[#BF360C] text-white w-12 h-12 rounded-full font-bold">✨</button>
+
+            <div class="glass p-5 max-w-xl mx-auto h-[480px] flex flex-col">
+                <h4 class="text-center text-xl mb-3">Chat da Dona Granada ✨</h4>
+                <div id="kids-chat-output" class="flex-grow overflow-y-auto rounded-lg p-3 bg-slate-950/30 border border-indigo-100/10"></div>
+                <div class="mt-4 flex gap-2">
+                    <input id="kids-chat-input" type="text" placeholder="Oi, Dona Granada!" class="flex-grow rounded-full px-4 py-2 bg-slate-900/80 border border-indigo-200/20" onkeypress="handleEnter(event, 'kids')">
+                    <button onclick="askGemini('kids')" class="w-11 h-11 rounded-full bg-rose-400 hover:bg-rose-300 text-slate-900 font-bold">✨</button>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="bg-[#3E2723] text-[#D7CCC8] py-8 text-center border-t-4 border-[#B71C1C]">
-        <p class="font-bold">Upgrade TCC - Pablo Salvato & IA</p>
-        <p class="text-xs opacity-50 mt-2">Tecnologia Gemini 2.0 Flash</p>
+    <footer class="border-t border-indigo-100/10 py-7 text-center text-indigo-200/80 text-sm">
+        <p class="font-semibold">TCC Interativo — Pablo Salvato</p>
+        <p class="opacity-80">Design modernizado com base no tema: metamorfismo de alto grau na Bacutia.</p>
     </footer>
 
     <script>
         const apiKey = "AIzaSyDcHaFb2wVSyxpodcoy6lr1_hW5TKAVQDI";
+        const tabs = ['general', 'academic', 'kids'];
+
+        document.getElementById('sliderControl').addEventListener('input', (e) => {
+            document.getElementById('imgFront').style.width = `${e.target.value}%`;
+        });
 
         function switchTab(tabId) {
-            ['general', 'academic', 'kids'].forEach(id => {
+            tabs.forEach((id) => {
                 document.getElementById(`view-${id}`).classList.add('hidden');
-                document.getElementById(`tab-${id}`).className = 'px-6 py-3 rounded-t-lg font-bold inactive-tab';
+                const tab = document.getElementById(`tab-${id}`);
+                tab.classList.remove('active-tab');
+                tab.classList.add('inactive-tab');
             });
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabId}`).className = 'px-6 py-3 rounded-t-lg font-bold active-tab';
+            const current = document.getElementById(`tab-${tabId}`);
+            current.classList.remove('inactive-tab');
+            current.classList.add('active-tab');
         }
 
-        function handleEnter(e, m) { if(e.key==='Enter') askGemini(m); }
+        function handleEnter(e, mode) {
+            if (e.key === 'Enter') askGemini(mode);
+        }
 
-        // --- SIMULADOR CALIBRADO ---
         const canvas = document.getElementById('rockCanvas');
         const ctx = canvas.getContext('2d');
+
         function atualizarSimulacao() {
-            const temp = parseInt(document.getElementById('tempSlider').value);
+            const temp = parseInt(document.getElementById('tempSlider').value, 10);
             document.getElementById('valTemp').innerText = temp;
             const title = document.getElementById('rock-status-title');
             const desc = document.getElementById('rock-status-desc');
 
-            ctx.clearRect(0,0,280,280);
-            
-            // Lógica de Cores e Texturas
+            ctx.clearRect(0, 0, 280, 280);
+
             if (temp < 200) {
-                ctx.fillStyle = '#8B4513';
-                title.innerText = "LAMA (Bacia de Retroarco)";
-                desc.innerText = "Ainda é sedimento no fundo do mar antigo.";
+                ctx.fillStyle = '#6b4c32';
+                title.innerText = 'Lama de bacia';
+                desc.innerText = 'Sedimento ainda pouco consolidado em ambiente tectônico ativo.';
             } else if (temp < 750) {
-                ctx.fillStyle = '#5D4037';
-                title.innerText = "GNAISSE (Rocha Sólida)";
-                desc.innerText = "A pressão formou camadas, mas a rocha ainda é sólida (Paleossoma).";
-                // Desenhar linhas de foliação
-                ctx.strokeStyle = '#3E2723'; ctx.lineWidth = 2;
-                for(let i=0; i<10; i++) {
-                    ctx.beginPath(); ctx.moveTo(40, 60+i*15); ctx.lineTo(240, 60+i*15); ctx.stroke();
+                ctx.fillStyle = '#7c8cff';
+                title.innerText = 'Gnaisse em evolução';
+                desc.innerText = 'A rocha está sólida e foliada, com crescimento mineral progressivo.';
+                ctx.strokeStyle = '#dbe1ff';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 10; i += 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(35, 65 + i * 15);
+                    ctx.lineTo(245, 65 + i * 15);
+                    ctx.stroke();
                 }
             } else {
-                ctx.fillStyle = '#FF4500';
-                title.innerHTML = "🔥 MIGMATITO (ANATEXIA!)";
-                desc.innerHTML = "Atingimos 750°C. A biotita derreteu! Nasceram as Granadas Peritéticas (Grt2) límpidas.";
-                // Desenhar magma e granadas peritéticas
-                ctx.shadowBlur = 15; ctx.shadowColor = 'yellow';
-                for(let i=0; i<8; i++) {
-                    ctx.fillStyle = '#cc0000';
-                    ctx.beginPath(); ctx.arc(60+Math.random()*160, 60+Math.random()*160, 15, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#ff8855';
+                title.innerText = 'Migmatito em anatexia';
+                desc.innerText = 'Faixa de 750°C+: fusão parcial e cristalização de granadas peritéticas (Grt2).';
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = '#ffd27a';
+                for (let i = 0; i < 8; i += 1) {
+                    ctx.fillStyle = '#b01c45';
+                    ctx.beginPath();
+                    ctx.arc(60 + Math.random() * 160, 60 + Math.random() * 160, 14, 0, Math.PI * 2);
+                    ctx.fill();
                 }
                 ctx.shadowBlur = 0;
             }
-            ctx.beginPath(); ctx.arc(140, 140, 110, 0, Math.PI*2); ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(140, 140, 108, 0, Math.PI * 2);
+            ctx.fill();
         }
 
-        // --- GEMINI AI ---
         const SYSTEM_PROMPTS = {
-            academic: "Você é um consultor técnico do TCC do Pablo Salvato. Foque em anatexia, granadas Grt1/Grt2 e Pico em 800C. Seja técnico.",
-            kids: "Você é a Dona Granada, uma pedra de 600 milhões de anos. Fale de forma divertida e use emojis."
+            academic: 'Você é um consultor técnico do TCC do Pablo Salvato. Seja objetivo e técnico sobre anatexia, granadas Grt1/Grt2 e trajetória P-T.',
+            kids: 'Você é a Dona Granada, uma pedra divertida de 600 milhões de anos. Fale com linguagem simples e emojis.'
         };
 
         async function askGemini(mode) {
             const input = document.getElementById(`${mode}-chat-input`);
             const output = document.getElementById(`${mode}-chat-output`);
-            const text = input.value.trim(); if(!text) return;
+            const text = input.value.trim();
+            if (!text) return;
 
-            const uDiv = document.createElement('div'); uDiv.className='user-msg chat-message'; uDiv.innerText=text;
-            output.appendChild(uDiv); input.value=''; output.scrollTop = output.scrollHeight;
+            const uDiv = document.createElement('div');
+            uDiv.className = 'user-msg chat-message';
+            uDiv.innerText = text;
+            output.appendChild(uDiv);
+            input.value = '';
+            output.scrollTop = output.scrollHeight;
 
-            const loading = document.createElement('div'); loading.className='ai-msg chat-message typing-indicator'; loading.innerText='...';
+            const loading = document.createElement('div');
+            loading.className = 'ai-msg chat-message typing-indicator';
+            loading.innerText = '...';
             output.appendChild(loading);
 
             try {
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{parts: [{text: text}]}],
-                        systemInstruction: {parts: [{text: SYSTEM_PROMPTS[mode]}]}
+                        contents: [{ parts: [{ text }] }],
+                        systemInstruction: { parts: [{ text: SYSTEM_PROMPTS[mode] }] }
                     })
                 });
+
                 const data = await response.json();
                 output.removeChild(loading);
-                const aiDiv = document.createElement('div'); aiDiv.className='ai-msg chat-message';
-                aiDiv.innerText = data.candidates[0].content.parts[0].text;
+                const aiDiv = document.createElement('div');
+                aiDiv.className = 'ai-msg chat-message';
+                aiDiv.innerText = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Não consegui responder agora.';
                 output.appendChild(aiDiv);
                 output.scrollTop = output.scrollHeight;
-            } catch (e) { loading.innerText='Erro de conexão.'; }
+            } catch (error) {
+                loading.innerText = 'Erro de conexão.';
+            }
         }
 
-        // --- CHARTS ---
         new Chart(document.getElementById('mineralChart'), {
-            type: 'bar', data: {
-                labels: ['Protólito', 'Pico', 'Retro'],
-                datasets: [{label: 'Granada %', data: [0, 25, 20], backgroundColor: '#B71C1C'}]
-            }, options: {responsive: true, maintainAspectRatio: false}
+            type: 'bar',
+            data: {
+                labels: ['Protólito', 'Pico metamórfico', 'Retro'] ,
+                datasets: [{ label: 'Granada (%)', data: [0, 25, 20], backgroundColor: ['#4d5da0', '#ff7e9f', '#ffb067'] }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#e9ecff' } } },
+                scales: {
+                    x: { ticks: { color: '#cdd5ff' }, grid: { color: 'rgba(233,236,255,0.08)' } },
+                    y: { ticks: { color: '#cdd5ff' }, grid: { color: 'rgba(233,236,255,0.08)' } }
+                }
+            }
         });
+
         new Chart(document.getElementById('ptPathChart'), {
-            type: 'scatter', data: {
-                datasets: [{label: 'Caminho P-T', data: [{x:400, y:3}, {x:800, y:7.5}, {x:700, y:4.5}], borderColor: '#B71C1C', showLine: true}]
-            }, options: {responsive: true, maintainAspectRatio: false}
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Trajetória P-T',
+                    data: [{ x: 400, y: 3 }, { x: 800, y: 7.5 }, { x: 700, y: 4.5 }],
+                    borderColor: '#7c8cff',
+                    backgroundColor: '#ff7e9f',
+                    pointRadius: 5,
+                    showLine: true,
+                    tension: 0.25
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#e9ecff' } } },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Temperatura (°C)', color: '#e9ecff' },
+                        ticks: { color: '#cdd5ff' },
+                        grid: { color: 'rgba(233,236,255,0.08)' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Pressão (kbar)', color: '#e9ecff' },
+                        ticks: { color: '#cdd5ff' },
+                        grid: { color: 'rgba(233,236,255,0.08)' }
+                    }
+                }
+            }
         });
 
         atualizarSimulacao();
