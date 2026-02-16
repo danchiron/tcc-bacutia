@@ -37,10 +37,71 @@ function mapGeminiError(status) {
   if (status === 429) {
     return { status: 429, error: 'Limite de requisições da IA atingido (429). Aguarde e tente novamente.' };
   }
+  if (status === 405) {
+    return { status: 502, error: 'O provedor de IA rejeitou o método/endpoint (405). A integração tentou endpoints alternativos automaticamente.' };
+  }
   if (status >= 500) {
     return { status: 502, error: `Falha temporária no provedor de IA (${status}).` };
   }
   return { status: 502, error: `Erro inesperado na integração com IA (${status}).` };
+}
+
+async function requestGemini({ apiKey, mode, text }) {
+  const payload = {
+    system_instruction: { parts: [{ text: SYSTEM_PROMPTS[mode] }] },
+    contents: [{ role: 'user', parts: [{ text }] }],
+  };
+
+  const endpoints = [
+    { model: 'gemini-2.0-flash', url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent' },
+    { model: 'gemini-2.0-flash', url: 'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent' },
+    { model: 'gemini-1.5-flash', url: 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent' },
+  ];
+
+  let lastFailure = null;
+
+  for (const endpoint of endpoints) {
+    const requestUrl = `${endpoint.url}?key=${encodeURIComponent(apiKey)}`;
+    const response = await fetch(requestUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!answer) {
+        return {
+          ok: false,
+          mapped: { status: 502, error: 'Resposta vazia ou inválida do provedor de IA.' },
+          providerStatus: 502,
+          details: 'Resposta sem texto em candidates[0].content.parts[0].text.',
+        };
+      }
+
+      return {
+        ok: true,
+        answer,
+        metadata: { model: endpoint.model, endpoint: endpoint.url.replace('https://generativelanguage.googleapis.com/', '') },
+      };
+    }
+
+    const mapped = mapGeminiError(response.status);
+    lastFailure = {
+      ok: false,
+      mapped,
+      providerStatus: response.status,
+      details: `Falha ao usar ${endpoint.url}`,
+    };
+
+    if (response.status !== 404 && response.status !== 405) {
+      break;
+    }
+  }
+
+  return lastFailure;
 }
 
 app.post('/api/chat', async (req, res) => {
@@ -60,28 +121,19 @@ app.post('/api/chat', async (req, res) => {
   }
 
   try {
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: SYSTEM_PROMPTS[mode] }] },
-        contents: [{ role: 'user', parts: [{ text }] }],
-      }),
-    });
+    const result = await requestGemini({ apiKey, mode, text });
 
-    if (!geminiResponse.ok) {
-      const mapped = mapGeminiError(geminiResponse.status);
-      return res.status(mapped.status).json({ error: mapped.error, metadata: { providerStatus: geminiResponse.status } });
+    if (!result?.ok) {
+      return res.status(result.mapped.status).json({
+        error: result.mapped.error,
+        metadata: {
+          providerStatus: result.providerStatus,
+          details: result.details,
+        },
+      });
     }
 
-    const data = await geminiResponse.json();
-    const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!answer) {
-      return res.status(502).json({ error: 'Resposta vazia ou inválida do provedor de IA.' });
-    }
-
-    return res.json({ answer, metadata: { model: 'gemini-2.0-flash' } });
+    return res.json({ answer: result.answer, metadata: result.metadata });
   } catch (error) {
     return res.status(502).json({
       error: 'Erro de comunicação com o provedor de IA. Verifique rede e disponibilidade do serviço.',
