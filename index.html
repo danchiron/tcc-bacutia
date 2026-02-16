@@ -93,6 +93,9 @@
                 <button onclick="switchTab('kids')" id="tab-kids" class="px-4 md:px-8 py-3 rounded-t-lg font-bold transition-all inactive-tab shadow-sm">
                     Interativo
                 </button>
+                <button onclick="switchTab('infografico')" id="tab-infografico" class="px-4 md:px-8 py-3 rounded-t-lg font-bold transition-all inactive-tab shadow-sm">
+                    Infográfico
+                </button>
             </div>
         </div>
     </nav>
@@ -228,6 +231,23 @@
                 </div>
             </div>
         </section>
+
+        <section id="view-infografico" class="hidden fade-in space-y-8">
+            <div class="max-w-5xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-gray-200">
+                <h2 class="text-3xl font-bold text-[#5D4037] text-center mb-2">Infográfico</h2>
+                <p class="text-center text-gray-700 mb-6">Anatexia em destaque</p>
+                <img
+                    src="https://drive.google.com/uc?export=view&id=1OyOmMzWaXJBx5g-ROvl-s_4RcZiNY8Sh"
+                    alt="Infográfico sobre anatexia"
+                    class="w-full h-auto rounded-xl border border-gray-300 shadow-sm"
+                    loading="lazy"
+                >
+                <p class="text-xs text-gray-500 mt-3 text-center">
+                    Se a imagem não carregar, abra diretamente:
+                    <a href="https://drive.google.com/file/d/1OyOmMzWaXJBx5g-ROvl-s_4RcZiNY8Sh/view?usp=drive_link" target="_blank" rel="noopener noreferrer" class="underline text-[#5D4037]">Google Drive</a>.
+                </p>
+            </div>
+        </section>
     </main>
 
     <footer class="bg-[#3E2723] text-[#D7CCC8] py-8 text-center border-t-4 border-[#B71C1C]">
@@ -239,7 +259,7 @@
         const apiKey = "AIzaSyDcHaFb2wVSyxpodcoy6lr1_hW5TKAVQDI";
 
         function switchTab(tabId) {
-            ['general', 'academic', 'kids'].forEach(id => {
+            ['general', 'academic', 'kids', 'infografico'].forEach(id => {
                 document.getElementById(`view-${id}`).classList.add('hidden');
                 document.getElementById(`tab-${id}`).classList.replace('active-tab', 'inactive-tab');
             });
