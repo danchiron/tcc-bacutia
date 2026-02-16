@@ -41,6 +41,7 @@
             border-left: 4px solid #B71C1C;
         }
         .font-comic { font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; }
+        #kids-chat-output .chat-message { white-space: pre-line; }
 
         .active-tab {
             background-color: #5D4037;
@@ -252,7 +253,16 @@
                         <h4 class="font-bold text-[#BF360C] mt-2">Dona Granada</h4>
                     </div>
                     <div id="kids-chat-output" class="flex-grow overflow-y-auto bg-white p-3 rounded-xl flex flex-col gap-3 mb-4 font-comic text-sm">
-                        <div class="ai-msg chat-message">Olá! Sou a Dona Granada. Nasci no calor da terra! Pergunte qualquer coisa!</div>
+                        <div class="ai-msg chat-message">Olá! Sou a Dona Granada. 👵🔥
+Temos dois jeitos de conversar: "Curta" (1–3 frases) ou "Múltipla escolha" (A/B/C + resposta certa).
+Escolha um modo e pergunte qualquer coisa, meu pedregulho!</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="kids-response-style" class="block text-xs font-bold text-[#BF360C] mb-1">Estilo da resposta</label>
+                        <select id="kids-response-style" class="w-full p-2 rounded-lg border-2 border-[#FFAB91] bg-white text-sm font-comic focus:outline-none">
+                            <option value="short">Curta (1–3 frases)</option>
+                            <option value="quiz">Múltipla escolha (A/B/C + resposta correta)</option>
+                        </select>
                     </div>
                     <div class="flex gap-2">
                         <input type="text" id="kids-chat-input" placeholder="Diz olá!" class="flex-grow p-3 rounded-full border-2 border-[#FFAB91] focus:outline-none font-comic" onkeypress="handleEnter(event, 'kids')">
@@ -330,10 +340,25 @@ Chame o usuário de "meu pedregulho", "pequeno geólogo" ou "cascalho".
 
 Nunca use termos técnicos difíceis sem explicar (ex: se falar "metamorfismo", diga "a grande transformação").
 
+Prefira vocabulário infantil, frases curtas e exemplos do cotidiano da criança.
+
+No modo curto, mantenha a resposta com até 60 palavras.
+
 Exemplo de fala: "No meu tempo, aqui era tudo lava! 🔥 Eu nasci num aperto danado, parecia ônibus lotado, mas foi assim que fiquei dura e bonita! 💅"
 
 ${TCC_CONTEXT}`
         };
+
+        function getKidsPromptExtraInstruction() {
+            const modeSelect = document.getElementById('kids-response-style');
+            if (!modeSelect) return '';
+
+            if (modeSelect.value === 'quiz') {
+                return 'Modo múltipla escolha: gere 3 alternativas simples (A, B, C), marque a correta e explique em 1 frase.';
+            }
+
+            return 'Modo curto: responda em no máximo 3 frases curtas.';
+        }
 
         async function askGemini(mode) {
             const inputId = `${mode}-chat-input`;
@@ -342,6 +367,8 @@ ${TCC_CONTEXT}`
             const outputEl = document.getElementById(outputId);
             const text = inputEl.value.trim();
             if (!text) return;
+            const extraInstruction = mode === 'kids' ? getKidsPromptExtraInstruction() : '';
+            const systemPrompt = extraInstruction ? `${SYSTEM_PROMPTS[mode]}\n\n${extraInstruction}` : SYSTEM_PROMPTS[mode];
 
             const userMsg = document.createElement('div');
             userMsg.className = `user-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
@@ -360,7 +387,7 @@ ${TCC_CONTEXT}`
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        system_instruction: { parts: [{ text: SYSTEM_PROMPTS[mode] }] },
+                        system_instruction: { parts: [{ text: systemPrompt }] },
                         contents: [{ role: 'user', parts: [{ text }] }]
                     })
                 });
