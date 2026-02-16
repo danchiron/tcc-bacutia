@@ -313,10 +313,6 @@ Escolha um modo e pergunte qualquer coisa, meu pedregulho!</div>
     </footer>
 
     <script>
-        const apiKey = "AIzaSyDcHaFb2wVSyxpodcoy6lr1_hW5TKAVQDI";
-        const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
-        const PRIMARY_MODEL = 'gemini-2.0-flash';
-        const FALLBACK_MODEL = 'gemini-1.5-flash';
 
         function switchTab(tabId) {
             ['general', 'academic', 'kids', 'infografico'].forEach(id => {
@@ -390,46 +386,27 @@ Responda de forma curtinha, no máximo 3 frases.`;
 
             try {
                 const userText = mode === 'kids' ? buildKidsInstruction(text) : text;
-                const payload = {
-                    system_instruction: { parts: [{ text: SYSTEM_PROMPTS[mode] }] },
-                    contents: [{ role: 'user', parts: [{ text: userText }] }],
-                    generationConfig: mode === 'kids'
-                        ? { maxOutputTokens: 180, temperature: 0.8 }
-                        : { maxOutputTokens: 512, temperature: 0.4 }
-                };
+                const payload = { mode, text: userText };
 
-                const endpoints = [PRIMARY_MODEL, FALLBACK_MODEL]
-                    .map(model => `${GEMINI_API_BASE_URL}/models/${model}:generateContent?key=${apiKey}`);
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-                let response;
-                let lastError = null;
-                for (const endpoint of endpoints) {
-                    response = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (response.ok) {
-                        requestError = null;
-                        break;
-                    }
-
-                    requestError = new Error(`Gemini retornou status ${response.status}`);
-                }
-
-                if (!response?.ok) {
-                    throw requestError || new Error('Falha ao conectar com o Gemini.');
+                if (!response.ok) {
+                    throw new Error(`Servidor retornou status ${response.status}.`);
                 }
 
                 const data = await response.json();
-                const answer = data?.candidates?.[0]?.content?.parts
-                    ?.map(part => part.text || '')
-                    .join('')
-                    .trim();
+                if (data?.error) {
+                    throw new Error(data.error);
+                }
+
+                const answer = data?.answer?.trim();
 
                 if (!answer) {
-                    throw new Error('Resposta vazia da API Gemini.');
+                    throw new Error('Resposta vazia do servidor.');
                 }
 
                 loading.remove();
@@ -437,17 +414,24 @@ Responda de forma curtinha, no máximo 3 frases.`;
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
                 aiMsg.innerText = answer;
                 outputEl.appendChild(aiMsg);
+
+                if (data?.metadata) {
+                    const metadataMsg = document.createElement('div');
+                    metadataMsg.className = 'text-xs text-gray-600 italic';
+                    metadataMsg.innerText = `ℹ️ ${typeof data.metadata === 'string' ? data.metadata : JSON.stringify(data.metadata)}`;
+                    outputEl.appendChild(metadataMsg);
+                }
+
                 outputEl.scrollTop = outputEl.scrollHeight;
             } catch (error) {
                 loading.remove();
                 const aiMsg = document.createElement('div');
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
-                aiMsg.innerText = `Não consegui responder agora (${error.message}). Tente novamente em instantes.`;
+                aiMsg.innerText = `Não consegui responder agora. ${error.message || 'Tente novamente em instantes.'}`;
                 outputEl.appendChild(aiMsg);
             } finally {
-                loading.remove();
+                if (loading.isConnected) loading.remove();
                 outputEl.scrollTop = outputEl.scrollHeight;
-                console.error(error);
             }
         }
 
