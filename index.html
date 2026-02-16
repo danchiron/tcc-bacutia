@@ -363,13 +363,33 @@ Responda de forma curtinha, no máximo 3 frases.`;
 
             try {
                 const userText = mode === 'kids' ? buildKidsInstruction(text) : text;
-                const payload = { mode, text: userText };
+                const payload = {
+                    system_instruction: { parts: [{ text: SYSTEM_PROMPTS[mode] }] },
+                    contents: [{ role: 'user', parts: [{ text: userText }] }],
+                    generationConfig: mode === 'kids'
+                        ? { maxOutputTokens: 180, temperature: 0.8 }
+                        : { maxOutputTokens: 512, temperature: 0.4 }
+                };
 
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                const endpoints = [PRIMARY_MODEL, FALLBACK_MODEL]
+                    .map(model => `${GEMINI_API_BASE_URL}/models/${model}:generateContent?key=${apiKey}`);
+
+                let response;
+                let requestError = null;
+                for (const endpoint of endpoints) {
+                    response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        requestError = null;
+                        break;
+                    }
+
+                    requestError = new Error(`Gemini retornou status ${response.status}`);
+                }
 
                 if (!response.ok) {
                     throw new Error(`Servidor retornou status ${response.status}.`);
@@ -386,7 +406,9 @@ Responda de forma curtinha, no máximo 3 frases.`;
                     throw new Error('Resposta vazia do servidor.');
                 }
 
-                loading.remove();
+                if (loading.parentNode) {
+                    loading.remove();
+                }
                 const aiMsg = document.createElement('div');
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
                 aiMsg.innerText = answer;
@@ -401,13 +423,18 @@ Responda de forma curtinha, no máximo 3 frases.`;
 
                 outputEl.scrollTop = outputEl.scrollHeight;
             } catch (error) {
-                loading.remove();
+                if (loading.parentNode) {
+                    loading.remove();
+                }
                 const aiMsg = document.createElement('div');
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
                 aiMsg.innerText = `Não consegui responder agora. ${error.message || 'Tente novamente em instantes.'}`;
                 outputEl.appendChild(aiMsg);
+                console.error(error);
             } finally {
-                if (loading.isConnected) loading.remove();
+                if (loading.parentNode) {
+                    loading.remove();
+                }
                 outputEl.scrollTop = outputEl.scrollHeight;
             }
         }
