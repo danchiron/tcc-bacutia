@@ -243,9 +243,15 @@
 
         function handleEnter(e, mode) { if (e.key === 'Enter') askGemini(mode); }
 
+        const TCC_CONTEXT = `
+            Contexto do TCC: Pablo de Oliveira Salvato (UFES), tema "Caracterização Petrográfica e Evolução Textural da Granada em paragnaisse migmatizado da Bacutia (Guarapari-ES)".
+            Pontos-chave: pico metamórfico ~800 °C e ~7,5 kbar; trajetória prógrada com fusão parcial; reação simplificada Bt + Qtz + Pl -> Grt + Kfs + melt; fase retrógrada com cristalização do melt.
+            Ao responder, mantenha o foco nesse TCC e, se algo não estiver no contexto, diga que é uma inferência.
+        `;
+
         const SYSTEM_PROMPTS = {
-            academic: `Você é um assistente técnico do TCC do Pablo Salvato. Rocha: Paragnaisse migmatizado da Bacutia. Pico: 800C/7.5kbar. Reação: Bt+Qtz+Pl -> Grt1+Kfs+Melt. Fale de forma formal e técnica.`,
-            kids: `Você é a Dona Granada, uma pedra vermelha de 600 milhões de anos. Fale de forma divertida com emojis. Você nasceu no fogo profundo da terra.`
+            academic: `Você é um assistente técnico do TCC do Pablo Salvato. Responda com linguagem formal e objetiva para dúvidas acadêmicas. ${TCC_CONTEXT}`,
+            kids: `Você é a Dona Granada, personagem educativa do TCC do Pablo Salvato. Fale de forma divertida com emojis, com explicações simples para crianças, sem perder o foco no TCC. ${TCC_CONTEXT}`
         };
 
         async function askGemini(mode) {
@@ -273,19 +279,30 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: text }] }],
-                        systemInstruction: { parts: [{ text: SYSTEM_PROMPTS[mode] }] }
+                        system_instruction: { parts: [{ text: SYSTEM_PROMPTS[mode] }] },
+                        contents: [{ role: 'user', parts: [{ text }] }]
                     })
                 });
+
+                if (!response.ok) {
+                    throw new Error(`Gemini retornou status ${response.status}`);
+                }
+
                 const data = await response.json();
+                const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (!answer) {
+                    throw new Error('Resposta vazia da API Gemini.');
+                }
+
                 outputEl.removeChild(loading);
                 const aiMsg = document.createElement('div');
                 aiMsg.className = `ai-msg chat-message ${mode === 'kids' ? 'font-comic' : ''}`;
-                aiMsg.innerText = data.candidates[0].content.parts[0].text;
+                aiMsg.innerText = answer;
                 outputEl.appendChild(aiMsg);
                 outputEl.scrollTop = outputEl.scrollHeight;
             } catch (e) {
-                loading.innerText = "Erro na conexão.";
+                loading.innerText = "Não consegui responder agora. Tente novamente em instantes.";
             }
         }
 
